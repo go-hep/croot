@@ -16,6 +16,7 @@ import "C"
 import (
 	"unsafe"
 	"reflect"
+	"fmt"
 )
 
 // utils
@@ -37,7 +38,7 @@ type File struct {
 	f C.CRoot_File
 }
 
-func OpenFile(name, option, title string, compress, netopt int) File {
+func OpenFile(name, option, title string, compress, netopt int) *File {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	c_option := C.CString(option)
@@ -46,7 +47,7 @@ func OpenFile(name, option, title string, compress, netopt int) File {
 	defer C.free(unsafe.Pointer(c_title))
 
 	f := C.CRoot_File_Open(c_name, c_option, c_title, C.int32_t(compress), C.int32_t(netopt))
-	return File{f:f}
+	return &File{f:f}
 }
 
 func (self *File) Cd(path string) bool {
@@ -98,13 +99,13 @@ type Tree struct {
 	t C.CRoot_Tree
 }
 
-func NewTree(name, title string, splitlevel int) Tree {
+func NewTree(name, title string, splitlevel int) *Tree {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	c_title := C.CString(title)
 	defer C.free(unsafe.Pointer(c_title))
 	t := C.CRoot_Tree_new(c_name, c_title, C.int32_t(splitlevel))
-	return Tree{t:t}
+	return &Tree{t:t}
 }
 
 func (self *Tree) Delete() {
@@ -123,7 +124,19 @@ func (self *Tree) Branch(name, classname string, obj interface{}, bufsiz, splitl
 	return Branch(b)
 }
 
-//func (self *Tree) Branch2(name string, address interface{}, leaflist string, int bufsiz) Branch
+func (self *Tree) Branch2(name string, objaddr interface{}, leaflist string, bufsiz int) Branch {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+
+	v := reflect.NewValue(objaddr)
+	c_addr := unsafe.Pointer(v.Elem().UnsafeAddr())
+
+	c_leaflist := C.CString(leaflist)
+	defer C.free(unsafe.Pointer(c_leaflist))
+
+	b := C.CRoot_Tree_Branch2(self.t, c_name, c_addr, c_leaflist, C.int32_t(bufsiz))
+	return Branch(b)
+}
 
 func (self *Tree) Fill() int {
 	return int(C.CRoot_Tree_Fill(self.t))
@@ -234,9 +247,49 @@ func (self *Tree) Print(option string) {
 }
 
 func (self *Tree) Write(name string, option, bufsize int) int {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
+	if len(name) != 0 {
+		c_name := C.CString(name)
+		defer C.free(unsafe.Pointer(c_name))
+		return int(C.CRoot_Tree_Write(self.t, c_name, C.int32_t(option), C.int32_t(bufsize)))
+	}
+	c_name := (*C.char)(unsafe.Pointer(nil))
 	return int(C.CRoot_Tree_Write(self.t, c_name, C.int32_t(option), C.int32_t(bufsize)))
+}
+
+// TRandom
+type Random struct {
+	r C.CRoot_Random
+}
+var GRandom *Random = nil
+
+func (r *Random) Gaus(mean, sigma float64) float64 {
+	val := C.CRoot_Random_Gaus(r.r, C.double(mean), C.double(sigma))
+	return float64(val)
+}
+
+func (r *Random) Rannorf() (a,b float32) {
+	c_a := (*C.float)(unsafe.Pointer(&a))
+	c_b := (*C.float)(unsafe.Pointer(&b))
+	C.CRoot_Random_Rannorf(r.r, c_a, c_b)
+	return
+}
+
+func (r *Random) Rannord() (a,b float64) {
+	c_a := (*C.double)(unsafe.Pointer(&a))
+	c_b := (*C.double)(unsafe.Pointer(&b))
+	C.CRoot_Random_Rannord(r.r, c_a, c_b)
+	return
+}
+
+func (r *Random) Rndm(i int) float64 {
+	val := C.CRoot_Random_Rndm(r.r, C.int32_t(i))
+	return float64(val)
+}
+
+func init() {
+	fmt.Printf(":: initializing go-croot...\n")
+	GRandom = &Random{r:C.CRoot_gRandom}
+	fmt.Printf(":: initializing go-croot...[done]\n")
 }
 
 // EOF

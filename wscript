@@ -20,4 +20,11 @@ def build(ctx):
             'croot',
             ],
         )
-    
+
+    ctx(
+        features='go goprogram',
+        name   = 'test-croot-ex-tree-00',
+        source ='cmd/test-croot-ex-tree-00.go',
+        target = 'test-croot-ex-tree-00',
+        use = ['go-croot',],
+        )
