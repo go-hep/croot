@@ -118,7 +118,7 @@ func (self *Tree) Branch(name, classname string, obj interface{}, bufsiz, splitl
 	defer C.free(unsafe.Pointer(c_name))
 	c_classname := C.CString(classname)
 	defer C.free(unsafe.Pointer(c_classname))
-	v := reflect.NewValue(obj)
+	v := reflect.ValueOf(obj)
 	c_addr := unsafe.Pointer(v.UnsafeAddr()) // FIXME !!!
 	b := C.CRoot_Tree_Branch(self.t, c_name, c_classname, c_addr, C.int32_t(bufsiz), C.int32_t(splitlevel))
 	return Branch(b)
@@ -128,7 +128,7 @@ func (self *Tree) Branch2(name string, objaddr interface{}, leaflist string, buf
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
-	v := reflect.NewValue(objaddr)
+	v := reflect.ValueOf(objaddr)
 	c_addr := unsafe.Pointer(v.Elem().UnsafeAddr())
 
 	c_leaflist := C.CString(leaflist)

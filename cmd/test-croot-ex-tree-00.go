@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"flag"
 
 	"croot"
 )
@@ -15,6 +16,8 @@ type Event struct {
 	a Det
 	b Det
 }
+
+var evtmax *int = flag.Int("evtmax", 10000, "number of events to generate")
 
 func tree0(f *croot.File) {
 	// create a tree
@@ -30,7 +33,7 @@ func tree0(f *croot.File) {
 	tree.Branch2("evt_b_t", &e.b.t, "evt_b_t/D", bufsiz)
 
 	// fill some events with random numbers
-	nevents := 10000
+	nevents := *evtmax
 	for iev := 0; iev != nevents; iev++ {
 		if iev%1000 == 0 {
 			fmt.Printf(":: processing event %d...\n", iev)
@@ -56,6 +59,7 @@ func tree0(f *croot.File) {
 }
 
 func main() {
+	flag.Parse()
 	f := croot.OpenFile("event.root", "recreate", "my event file", 1, 0)
 	tree0(f)
 	f.Close("")
