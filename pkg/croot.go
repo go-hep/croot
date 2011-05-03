@@ -26,6 +26,12 @@ func c2bool(b C.CRoot_Bool) bool {
 	}
 	return false
 }
+func bool2c(b bool) C.CRoot_Bool {
+	if true {
+		return C.CRoot_Bool(1)
+	}
+	return C.CRoot_Bool(0)
+}
 
 //
 type Option string
@@ -267,6 +273,14 @@ func (self *Tree) SetBranchAddress(name string, objaddr interface{}) int32 {
 	
 	rc := C.CRoot_Tree_SetBranchAddress(self.t, c_name, c_addr, nil)
 	return int32(rc)
+}
+
+func (self *Tree) SetBranchStatus(name string, status bool) uint32 {
+	c_found := C.uint32_t(0)
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+	C.CRoot_Tree_SetBranchStatus(self.t, c_name, bool2c(status), &c_found)
+	return uint32(c_found)
 }
 
 func (self *Tree) Write(name string, option, bufsize int) int {
