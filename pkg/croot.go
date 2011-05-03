@@ -67,11 +67,23 @@ func (self *File) GetFd() int {
 	return int(C.CRoot_File_GetFd(self.f))
 }
 
-func (self *File) Get(namecycle string) Object {
+func (self *File) Get(namecycle string) *Object {
 	c_name := C.CString(namecycle)
 	defer C.free(unsafe.Pointer(c_name))
 	o := C.CRoot_File_Get(self.f, c_name)
-	return Object{o}
+	if o == nil {
+		return nil
+	}
+	return &Object{o}
+}
+
+func (self *File) GetTree(namecycle string) *Tree {
+	o := self.Get(namecycle)
+	if o == nil {
+		return nil
+	}
+	c_t := (C.CRoot_Tree)(unsafe.Pointer(o.o))
+	return &Tree{t:c_t}
 }
 
 func (self *File) IsOpen() bool {
@@ -244,6 +256,17 @@ func (self *Tree) Print(option string) {
 	defer C.free(unsafe.Pointer(c_option))
 
 	C.CRoot_Tree_Print(self.t, c_option)
+}
+
+func (self *Tree) SetBranchAddress(name string, objaddr interface{}) int32 {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+
+	v := reflect.ValueOf(objaddr)
+	c_addr := unsafe.Pointer(v.Elem().UnsafeAddr())
+	
+	rc := C.CRoot_Tree_SetBranchAddress(self.t, c_name, c_addr, nil)
+	return int32(rc)
 }
 
 func (self *Tree) Write(name string, option, bufsize int) int {
