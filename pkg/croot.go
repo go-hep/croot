@@ -131,13 +131,20 @@ func (self *Tree) Delete() {
 	self.t = nil
 }
 
-func (self *Tree) Branch(name, classname string, obj interface{}, bufsiz, splitlevel int) Branch {
+func (self *Tree) Branch(name string, obj interface{}, bufsiz, splitlevel int) Branch {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
+	v := follow_ptr(reflect.ValueOf(obj))
+	t := v.Type().Elem()
+	// register the type with Reflex
+	genreflex(t)
+	classname := to_cxx_name(t)
 	c_classname := C.CString(classname)
 	defer C.free(unsafe.Pointer(c_classname))
-	v := reflect.ValueOf(obj)
-	c_addr := unsafe.Pointer(v.UnsafeAddr()) // FIXME !!!
+	c_addr := unsafe.Pointer(v.UnsafeAddr())
+
+	fmt.Printf("Tree.Branch(%s, [%s], [%v], [%v])...\n", name, classname, reflect.ValueOf(obj).Type(), t)
+
 	b := C.CRoot_Tree_Branch(self.t, c_name, c_classname, c_addr, C.int32_t(bufsiz), C.int32_t(splitlevel))
 	return Branch(b)
 }
@@ -264,14 +271,19 @@ func (self *Tree) Print(option string) {
 	C.CRoot_Tree_Print(self.t, c_option)
 }
 
-func (self *Tree) SetBranchAddress(name string, objaddr interface{}) int32 {
+func (self *Tree) SetBranchAddress(name string, obj interface{}) int32 {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
-	v := reflect.ValueOf(objaddr)
-	c_addr := unsafe.Pointer(v.Elem().UnsafeAddr())
+	v := reflect.ValueOf(obj)
+	//v = follow_ptr(v)
+	t := follow_ptr(v).Type().Elem()
+	fmt.Printf("Tree.SetBranch(%s, [%s], [%v] [%v])...\n", name, t.Name(), t, v.Type())
+	genreflex(t)
+	objaddr := v.Elem().UnsafeAddr()
+	c_addr := (*unsafe.Pointer)(unsafe.Pointer(&objaddr))
 	
-	rc := C.CRoot_Tree_SetBranchAddress(self.t, c_name, c_addr, nil)
+	rc := C.CRoot_Tree_SetBranchAddress(self.t, c_name, *c_addr, nil)
 	return int32(rc)
 }
 
