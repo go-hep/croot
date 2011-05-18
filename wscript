@@ -15,12 +15,12 @@ def build(ctx):
         features='cgopackage',
         name ='go-croot',
         source='''
-        pkg/croot.go
-        pkg/croot_genreflex.go
-        pkg/croot_reflex.go
-        pkg/croot_cintex.go
+        pkg/croot/croot.go
+        pkg/croot/croot_genreflex.go
+        pkg/croot/croot_reflex.go
+        pkg/croot/croot_cintex.go
         ''',
-        target='croot',
+        target='bitbucket.org/binet/go-croot/pkg/croot',
         use = [
             'croot',
             ],
