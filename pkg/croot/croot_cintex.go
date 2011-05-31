@@ -24,6 +24,6 @@ func (c cintex) SetDebug(lvl int) {
 }
 func init() {
 	Cintex.Enable()
-	Cintex.SetDebug(100000)
+	//Cintex.SetDebug(100000)
 }
 // eof

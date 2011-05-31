@@ -14,9 +14,11 @@ package croot
 import "C"
 
 import (
-	"unsafe"
-	"reflect"
 	"fmt"
+	//"reflect"
+	"unsafe"
+
+	"bitbucket.org/binet/go-ctypes/pkg/ctypes"
 )
 
 // utils
@@ -89,7 +91,7 @@ func (self *File) GetTree(namecycle string) *Tree {
 		return nil
 	}
 	c_t := (C.CRoot_Tree)(unsafe.Pointer(o.o))
-	return &Tree{t:c_t}
+	return &Tree{t:c_t, branches:make(map[string]gobranch)}
 }
 
 func (self *File) IsOpen() bool {
@@ -115,6 +117,14 @@ type Branch C.CRoot_Branch
 // Tree
 type Tree struct {
 	t C.CRoot_Tree
+	branches map[string]gobranch
+}
+
+type gobranch struct {
+	g interface{} // pointer to go-value
+	c  *ctypes.Value // the equivalent C-value
+	enc      ctypes.Encoder // go->c encoder
+	dec      ctypes.Decoder // c->go decoder
 }
 
 func NewTree(name, title string, splitlevel int) *Tree {
@@ -123,29 +133,43 @@ func NewTree(name, title string, splitlevel int) *Tree {
 	c_title := C.CString(title)
 	defer C.free(unsafe.Pointer(c_title))
 	t := C.CRoot_Tree_new(c_name, c_title, C.int32_t(splitlevel))
-	return &Tree{t:t}
+	b := make(map[string]gobranch)
+	return &Tree{t:t, branches:b}
 }
 
 func (self *Tree) Delete() {
 	C.CRoot_Tree_delete(self.t)
 	self.t = nil
+	self.branches = nil
 }
 
 func (self *Tree) Branch(name string, obj interface{}, bufsiz, splitlevel int) Branch {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
-	v := follow_ptr(reflect.ValueOf(obj))
-	t := v.Type().Elem()
+	//v := follow_ptr(reflect.ValueOf(obj))
+	//t := v.Type().Elem()
 	// register the type with Reflex
-	genreflex(t)
-	classname := to_cxx_name(t)
+	//genreflex(t)
+	br := gobranch{g:obj, c:ctypes.ValueOf(obj), enc:nil, dec:nil}
+	br.enc = ctypes.NewEncoder(br.c)
+	t := br.c.Type()
+	self.branches[name] = br
+	c_addr := br.c.UnsafeAddress()
+	//c_addr := unsafe.Pointer(br.c.UnsafeAddress())
+	//c_addr := unsafe.Pointer(&br.c.Buffer()[0])
+	// register the type with Reflex
+	genreflex(br.c.Type())
+
+	classname := to_cxx_name(t.GoType())
 	c_classname := C.CString(classname)
 	defer C.free(unsafe.Pointer(c_classname))
-	c_addr := unsafe.Pointer(v.UnsafeAddr())
 
-	fmt.Printf("Tree.Branch(%s, [%s], [%v], [%v])...\n", name, classname, reflect.ValueOf(obj).Type(), t)
+	//fmt.Printf("Tree.Branch(%s, [%s], [%v], [%v] [%v])...\n", name, classname, br.c.Type(), br.c.UnsafeAddress(), br.c.Buffer()[0])
 
-	b := C.CRoot_Tree_Branch(self.t, c_name, c_classname, c_addr, C.int32_t(bufsiz), C.int32_t(splitlevel))
+	// c_buff := (*[]byte)(*(*unsafe.Pointer)(unsafe.Pointer(&(br.c.Buffer()[0]))))
+	// fmt.Printf(":>> %v (%v) (%v) \n:<<(%v) [%d,%d]\n",br.c.Buffer(), br.g, br.c.UnsafeAddress(), *c_buff, len(*c_buff), len(br.c.Buffer()))
+
+	b := C.CRoot_Tree_Branch(self.t, c_name, c_classname, unsafe.Pointer(&c_addr), C.int32_t(bufsiz), C.int32_t(splitlevel))
 	return Branch(b)
 }
 
@@ -153,17 +177,28 @@ func (self *Tree) Branch2(name string, objaddr interface{}, leaflist string, buf
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
-	v := reflect.ValueOf(objaddr)
-	c_addr := unsafe.Pointer(v.Elem().UnsafeAddr())
+	v := ctypes.ValueOf(objaddr)
+	br := gobranch{g:objaddr, c:v, enc:nil, dec:nil}
+	br.enc = ctypes.NewEncoder(br.c)
+	self.branches[name] = br
+	c_addr := br.c.UnsafeAddress()
 
 	c_leaflist := C.CString(leaflist)
 	defer C.free(unsafe.Pointer(c_leaflist))
 
-	b := C.CRoot_Tree_Branch2(self.t, c_name, c_addr, c_leaflist, C.int32_t(bufsiz))
+	b := C.CRoot_Tree_Branch2(self.t, c_name, unsafe.Pointer(&c_addr), c_leaflist, C.int32_t(bufsiz))
 	return Branch(b)
 }
 
 func (self *Tree) Fill() int {
+	// synchronize branches: update ctypes.Value
+	for k,br := range self.branches {
+		//fmt.Printf("::> %v (%v) (%v)\n",br.c.Buffer(), br.g, br.c.UnsafeAddress())
+		_,err := br.enc.Encode(br.g)
+		if err != nil {
+			fmt.Printf("**err** problem encoding branch [%s]: %s\n", k,err)
+		}
+	}
 	return int(C.CRoot_Tree_Fill(self.t))
 }
 
@@ -180,6 +215,15 @@ func (self *Tree) GetEntries() int64 {
 
 func (self *Tree) GetEntry(entry int64, getall int) int {
 	nbytes := C.CRoot_Tree_GetEntry(self.t, C.int64_t(entry), C.int32_t(getall))
+	if nbytes>0 {
+		for k,br := range self.branches {
+			//fmt.Printf("::> %v (%v) (%v)\n",br.c.Buffer(), br.g, br.c.UnsafeAddress())
+			_,err := br.dec.Decode(br.g)
+			if err != nil {
+				fmt.Printf("**err** could not decode branch [%s]: %s\n", k, err)
+			}
+		}
+	}
 	return int(nbytes)
 }
 
@@ -275,15 +319,14 @@ func (self *Tree) SetBranchAddress(name string, obj interface{}) int32 {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
-	v := reflect.ValueOf(obj)
-	//v = follow_ptr(v)
-	t := follow_ptr(v).Type().Elem()
-	fmt.Printf("Tree.SetBranch(%s, [%s], [%v] [%v])...\n", name, t.Name(), t, v.Type())
-	genreflex(t)
-	objaddr := v.Elem().UnsafeAddr()
-	c_addr := (*unsafe.Pointer)(unsafe.Pointer(&objaddr))
-	
-	rc := C.CRoot_Tree_SetBranchAddress(self.t, c_name, *c_addr, nil)
+	br := gobranch{g:obj, c:ctypes.ValueOf(obj), enc:nil, dec:nil}
+	br.dec = ctypes.NewDecoder(br.c)
+	self.branches[name] = br
+
+	genreflex(br.c.Type())
+	c_addr := br.c.UnsafeAddress()
+	//fmt.Printf("setBranch(%s, %v)...\n", name, c_addr)
+	rc := C.CRoot_Tree_SetBranchAddress(self.t, c_name, unsafe.Pointer(&c_addr), nil)
 	return int32(rc)
 }
 

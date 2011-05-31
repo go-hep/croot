@@ -11,7 +11,7 @@ def configure(ctx):
     
 def build(ctx):
 
-    ctx(
+    o=ctx(
         features='cgopackage',
         name ='go-croot',
         source='''
@@ -19,13 +19,16 @@ def build(ctx):
         pkg/croot/croot_genreflex.go
         pkg/croot/croot_reflex.go
         pkg/croot/croot_cintex.go
+        pkg/croot/croot_cstruct.go
         ''',
         target='bitbucket.org/binet/go-croot/pkg/croot',
         use = [
             'croot',
+            'go-ctypes',
             ],
         )
-
+    #o.env.GOMAKE_FLAGS=' '
+    
     ctx(
         features='go goprogram',
         name   = 'test-croot-ex-tree-00',
