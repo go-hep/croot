@@ -36,7 +36,7 @@ import (
 type ctor_fct func(retaddr, mem, args, ctx unsafe.Pointer)
 var ctors []*ctor_fct
 //export GoCRoot_make_ctor
-func make_ctor(sz uintptr) *ctor_fct {
+func GoCRoot_make_ctor(sz uintptr) *ctor_fct {
 	fct := func(retaddr, mem, args, ctx unsafe.Pointer) {
 		fmt.Printf("--ctor[%d] [%v] [%v] [%v] [%v]...\n",
 			sz, retaddr, mem, args, ctx)
