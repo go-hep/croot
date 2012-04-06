@@ -54,7 +54,7 @@ func OpenFile(name, option, title string, compress, netopt int) *File {
 	c_title := C.CString(title)
 	defer C.free(unsafe.Pointer(c_title))
 
-	f := C.CRoot_File_Open(c_name, c_option, c_title, C.int32_t(compress), C.int32_t(netopt))
+	f := C.CRoot_File_Open(c_name, (*C.CRoot_Option)(c_option), c_title, C.int32_t(compress), C.int32_t(netopt))
 	return &File{f:f}
 }
 
@@ -68,7 +68,7 @@ func (self *File) Close(option string) {
 	c_option := C.CString(option)
 	defer C.free(unsafe.Pointer(c_option))
 
-	C.CRoot_File_Close(self.f, c_option)
+	C.CRoot_File_Close(self.f, (*C.CRoot_Option)(c_option))
 }
 
 func (self *File) GetFd() int {
@@ -312,7 +312,7 @@ func (self *Tree) Print(option string) {
 	c_option := C.CString(option)
 	defer C.free(unsafe.Pointer(c_option))
 
-	C.CRoot_Tree_Print(self.t, c_option)
+	C.CRoot_Tree_Print(self.t, (*C.CRoot_Option)(c_option))
 }
 
 func (self *Tree) SetBranchAddress(name string, obj interface{}) int32 {

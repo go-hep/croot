@@ -7,18 +7,21 @@ package croot
  #include <stdlib.h>
  #include <string.h>
 
-
+ static
  void
  _go_reflex_dummy_ctor_stub(void *retaddr, void *mem, void *args, void *ctx)
  {}
 
+ static
  void*
  _get_go_reflex_dummy_ctor_stub() { return &_go_reflex_dummy_ctor_stub; }
 
+ static
  void
  _go_reflex_dummy_dtor_stub(void *retaddr, void *mem, void *args, void *ctx)
  {}
 
+ static
  void*
  _get_go_reflex_dummy_dtor_stub() { return &_go_reflex_dummy_dtor_stub; }
 
