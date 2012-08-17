@@ -4,33 +4,31 @@ import (
 	"fmt"
 	"flag"
 
-	"bitbucket.org/binet/go-croot/pkg/croot"
+	"github.com/sbinet/go-croot/pkg/croot"
 )
 
 type Det struct {
-	e float64
-	t float64
+	E float64
+	T float64
 }
 
 type Event struct {
-	a Det
-	b Det
+	A Det
+	B Det
 }
 
 var evtmax *int = flag.Int("evtmax", 10000, "number of events to generate")
+var fname *string = flag.String("fname", "event.root", "file to create")
 
 func tree0(f *croot.File) {
 	// create a tree
 	tree := croot.NewTree("tree", "tree", 32)
 	e := &Event{}
-	
+
 	bufsiz := 32000
-	
+
 	// create a branch with energy
-	tree.Branch2("evt_a_e", &e.a.e, "evt_a_e/D", bufsiz)
-	tree.Branch2("evt_a_t", &e.a.t, "evt_a_e/D", bufsiz)
-	tree.Branch2("evt_b_e", &e.b.e, "evt_b_e/D", bufsiz)
-	tree.Branch2("evt_b_t", &e.b.t, "evt_b_t/D", bufsiz)
+	tree.Branch("evt", &e, bufsiz, 0)
 
 	// fill some events with random numbers
 	nevents := *evtmax
@@ -41,26 +39,26 @@ func tree0(f *croot.File) {
 
 		// the two energies follow a gaussian distribution
 		ea, eb := croot.GRandom.Rannord()
-		e.a.e = ea
-		e.b.e = eb
+		e.A.E = ea
+		e.B.E = eb
 
-		e.a.t = croot.GRandom.Rndm(1)
-		e.b.t = e.a.t * croot.GRandom.Gaus(0., 1.)
-
+		e.A.T = croot.GRandom.Rndm(1)
+		e.B.T = e.A.T * croot.GRandom.Gaus(0., 1.)
 		if iev%1000 == 0 {
-			fmt.Printf("evt.a.e= %8.3f\n", e.a.e)
-			fmt.Printf("evt.a.t= %8.3f\n", e.a.t)
-			fmt.Printf("evt.b.e= %8.3f\n", e.b.e)
-			fmt.Printf("evt.b.t= %8.3f\n", e.b.t)
+			fmt.Printf("ievt: %d\n", iev)
+			fmt.Printf("evt.a.e= %8.3f\n", e.A.E)
+			fmt.Printf("evt.a.t= %8.3f\n", e.A.T)
+			fmt.Printf("evt.b.e= %8.3f\n", e.B.E)
+			fmt.Printf("evt.b.t= %8.3f\n", e.B.T)
 		}
 		tree.Fill()
 	}
-	f.Write("",0,0)
+	f.Write("", 0, 0)
 }
 
 func main() {
 	flag.Parse()
-	f := croot.OpenFile("event.root", "recreate", "my event file", 1, 0)
+	f := croot.OpenFile(*fname, "recreate", "my event file", 1, 0)
 	tree0(f)
 	f.Close("")
 }
