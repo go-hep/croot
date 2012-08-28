@@ -6,11 +6,13 @@ package croot
 
  #include <stdlib.h>
  #include <string.h>
-
+#include <stdio.h>
  static
  void
  _go_reflex_dummy_ctor_stub(void *retaddr, void *mem, void *args, void *ctx)
- {}
+ {
+ printf("::go-reflex-dummy-ctor %p %p %p %p\n", retaddr, mem, args, ctx); abort();
+ }
 
  static
  void*
@@ -33,7 +35,7 @@ import (
 	"reflect"
 	"unsafe"
 
-	"bitbucket.org/binet/go-ctypes/pkg/ctypes"
+	"github.com/sbinet/go-ffi/pkg/ffi"
 )
 
 type ctor_fct func(retaddr, mem, args, ctx unsafe.Pointer)
@@ -50,14 +52,14 @@ func GoCRoot_make_ctor(sz uintptr) *ctor_fct {
 }
 
 // map of already translated-to-Reflex types
-var reflexed_types map[ctypes.Type]*ReflexType
+var reflexed_types map[string]*ReflexType
 
 func init() {
-	reflexed_types = make(map[ctypes.Type]*ReflexType)
+	reflexed_types = make(map[string]*ReflexType)
 }
 
 func RegisterType(v interface{}) {
-	t := ctypes.ValueOf(v).Type()
+	t := ffi.ValueOf(v).Type()
 	//fmt.Printf("registering [%s] (sz:%d)...\n",t, t.Size())
 	genreflex(t)
 }
@@ -83,10 +85,10 @@ func to_cxx_name(t reflect.Type) string {
 	return t.Name()
 }
 
-// helper function to create a Reflex::Type from a go.ctypes.Type
-func genreflex(t ctypes.Type) {
+// helper function to create a Reflex::Type from a go.ffi.Type
+func genreflex(t ffi.Type) {
 	//fmt.Printf("::genreflex[%v]...\n", t)
-	_,ok := reflexed_types[t]
+	_,ok := reflexed_types[t.Name()]
 	if ok {
 		// already processed...
 		return
@@ -95,49 +97,49 @@ func genreflex(t ctypes.Type) {
 	var rflx_type *ReflexType = nil
 
 	switch t.Kind() {
-	case ctypes.Bool:
+	// case ffi.Bool:
+	// 	// no-op
+
+	case ffi.Int, ffi.Int8, ffi.Int16, ffi.Int32, ffi.Int64:
 		// no-op
 
-	case ctypes.Int, ctypes.Int8, ctypes.Int16, ctypes.Int32, ctypes.Int64:
+	case /*ffi.Uint,*/ ffi.Uint8, ffi.Uint16, ffi.Uint32, ffi.Uint64:
 		// no-op
 
-	case ctypes.Uint, ctypes.Uint8, ctypes.Uint16, ctypes.Uint32, ctypes.Uint64:
-		// no-op
+	// case ffi.Uintptr:
+	// 	// no-op
 
-	case ctypes.Uintptr:
-		// no-op
-
-	case ctypes.Float32, ctypes.Float64:
+	case ffi.Float, ffi.Double, ffi.LongDouble:
 		// noop
 
-	case ctypes.Complex64, ctypes.Complex128:
-		// no-op ?
+	// case ffi.Complex64, ffi.Complex128:
+	// 	// no-op ?
 
-	case ctypes.Array:
+	case ffi.Array:
 		genreflex(t.Elem())
 
-	// case ctypes.Chan:
+	// case ffi.Chan:
 	// 	panic(fmt.Sprintf("cannot handle Chan-kind [%s]", t.Name()))
 
-	// case ctypes.Func:
+	// case ffi.Func:
 	// 	panic(fmt.Sprintf("cannot handle Func-kind [%s]", t.Name()))
 
-	// case ctypes.Interface:
+	// case ffi.Interface:
 	// 	panic(fmt.Sprintf("cannot handle Interface-kind [%s]", t.Name()))
 
-	// case ctypes.Map:
+	// case ffi.Map:
 	// 	panic(fmt.Sprintf("cannot handle Map-kind [%s]", t.Name()))
 
-	case ctypes.Ptr:
+	case ffi.Ptr:
 		genreflex(t.Elem())
 
-	case ctypes.Slice:
+	case ffi.Slice:
 		genreflex(t.Elem())
 
-	case ctypes.String:
+	case ffi.String:
 		//FIXME
 
-	case ctypes.Struct:
+	case ffi.Struct:
 		rflx_type = genreflex_struct(t)
 
 	default:
@@ -145,16 +147,19 @@ func genreflex(t ctypes.Type) {
 	}
 
 	if rflx_type != nil {
-		reflexed_types[t] = rflx_type
+		reflexed_types[t.Name()] = rflx_type
 	}
 	//fmt.Printf("::genreflex[%v]...[done]\n", t)
 }
 
 // helper function to create a Reflex::Class-type from a go.struct
-func genreflex_struct(t ctypes.Type) *ReflexType {
+func genreflex_struct(t ffi.Type) *ReflexType {
 	tname := t.Name()
+	if t.GoType() == nil {
+		panic("no go-type for ffi.Type [" +t.Name() +"]")
+	}
 	full_name := to_cxx_name(t.GoType())
-	//fmt.Printf("::genreflex_struct[%s]...\n", full_name)
+	// fmt.Printf("::genreflex_struct[%s]...\n", full_name)
 
 	bldr := NewReflexClassBuilder(
 		//FIXME: generate namespaces for each containing package
@@ -198,88 +203,92 @@ func genreflex_struct(t ctypes.Type) *ReflexType {
 
 	bldr.Delete()
 	rt := ReflexType_ByName(tname)
-	//fmt.Printf(":: %s-size: %d\n", rt.Name(), rt.SizeOf())
-	//fmt.Printf(":: %s-mbrs: %d\n", rt.Name(), rt.DataMemberSize(Reflex_INHERITEDMEMBERS_NO))
-	//fmt.Printf("::genreflex_struct[%s]...[done]\n", full_name)
+	// fmt.Printf(":: ffi-siz: %d\n", t.Size())
+	// fmt.Printf(":: %s-size: %d\n", rt.Name(), rt.SizeOf())
+	// fmt.Printf(":: %s-mbrs: %d\n", rt.Name(), rt.DataMemberSize(Reflex_INHERITEDMEMBERS_NO))
+	// fmt.Printf("::genreflex_struct[%s]...[done]\n", full_name)
 	return rt
 }
 
-// return a *croot.ReflexType from a ctypes.Type one
-func rflx_type_from(t ctypes.Type) *ReflexType {
+// return a *croot.ReflexType from a ffi.Type one
+func rflx_type_from(t ffi.Type) *ReflexType {
 	var rflx *ReflexType = nil
-	rflx,ok := reflexed_types[t]
+	rflx,ok := reflexed_types[t.Name()]
 	if ok {
 		// already processed...
 		return rflx
 	}
 	rflx = nil
 	switch t.Kind() {
-	case ctypes.Bool:
-		rflx = ReflexType_ByName("bool")
+	// case ffi.Bool:
+	// 	rflx = ReflexType_ByName("bool")
 
-	case ctypes.Int:
+	case ffi.Int:
 		rflx = ReflexType_ByName("int")
 
-	case ctypes.Int8:
+	case ffi.Int8:
 		rflx = ReflexType_ByName("int8_t")
 
-	case ctypes.Int16:
+	case ffi.Int16:
 		rflx = ReflexType_ByName("int16_t")
 
-	case ctypes.Int32:
+	case ffi.Int32:
 		rflx = ReflexType_ByName("int32_t")
 
-	case ctypes.Int64:
+	case ffi.Int64:
 		rflx = ReflexType_ByName("int64_t")
 
-	case ctypes.Uint:
-		rflx = ReflexType_ByName("unsigned int")
+	// case ffi.Uint:
+	// 	rflx = ReflexType_ByName("unsigned int")
 
-	case ctypes.Uint8:
+	case ffi.Uint8:
 		rflx = ReflexType_ByName("uint8_t")
 
-	case ctypes.Uint16:
+	case ffi.Uint16:
 		rflx = ReflexType_ByName("uint16_t")
 
-	case ctypes.Uint32:
+	case ffi.Uint32:
 		rflx = ReflexType_ByName("uint32_t")
 
-	case ctypes.Uint64:
+	case ffi.Uint64:
 		rflx = ReflexType_ByName("uint64_t")
 
-	case ctypes.Uintptr:
-		rflx = ReflexType_ByName("uintptr_t")
+	// case ffi.Uintptr:
+	// 	rflx = ReflexType_ByName("uintptr_t")
 
-	case ctypes.Float32:
+	case ffi.Float:
 		rflx = ReflexType_ByName("float")
 
-	case ctypes.Float64:
+	case ffi.Double:
 		rflx = ReflexType_ByName("double")
 
-	case ctypes.Complex64:
-		rflx = ReflexType_ByName("float complex")
+	case ffi.LongDouble:
+		rflx = ReflexType_ByName("long double")
 
-	case ctypes.Complex128:
-		rflx = ReflexType_ByName("double complex")
+	// case ffi.Complex64:
+	// 	rflx = ReflexType_ByName("float complex")
 
-	case ctypes.Array:
+	// case ffi.Complex128:
+	// 	rflx = ReflexType_ByName("double complex")
+
+	case ffi.Array:
 		rflx = NewReflexArrayBuilder(rflx_type_from(t.Elem()), t.Len())
 
-	case ctypes.Ptr:
+	case ffi.Ptr:
 		rflx = NewReflexPointerBuilder(rflx_type_from(t.Elem()))
 
-	// case ctypes.Slice:
+	// case ffi.Slice:
 	// 	rflx 
 
-	case ctypes.String:
+	case ffi.String:
 		rflx = ReflexType_ByName("char*")
 
-	case ctypes.Struct:
+	case ffi.Struct:
 		genreflex_struct(t)
 		rflx = ReflexType_ByName(t.Name())
 
-	case ctypes.UnsafePointer:
-		rflx = NewReflexPointerBuilder(ReflexType_ByName("void"))
+	// case ffi.UnsafePointer:
+	// 	rflx = NewReflexPointerBuilder(ReflexType_ByName("void"))
 
 	default:
 		panic(
@@ -289,6 +298,6 @@ func rflx_type_from(t ctypes.Type) *ReflexType {
 			t.Kind().String()))
 	}
 
-	reflexed_types[t] = rflx
+	reflexed_types[t.Name()] = rflx
 	return rflx
 }

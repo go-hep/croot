@@ -13,11 +13,12 @@ type Det struct {
 }
 
 type Event struct {
+	I int64
 	A Det
 	B Det
 }
 
-var evtmax *int = flag.Int("evtmax", 10000, "number of events to read")
+var evtmax *int64 = flag.Int64("evtmax", 10000, "number of events to read")
 var fname *string = flag.String("fname", "event.root", "file to read back")
 
 func tree0(f *croot.File) {

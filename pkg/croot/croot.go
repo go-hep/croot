@@ -10,15 +10,15 @@ package croot
  double _go_croot_double_at(double *array, int idx)
  { return array[idx]; }
 
- */
+*/
 import "C"
 
 import (
 	"fmt"
-	//"reflect"
+	"reflect"
 	"unsafe"
 
-	"bitbucket.org/binet/go-ctypes/pkg/ctypes"
+	"github.com/sbinet/go-ffi/pkg/ffi"
 )
 
 // utils
@@ -55,7 +55,7 @@ func OpenFile(name, option, title string, compress, netopt int) *File {
 	defer C.free(unsafe.Pointer(c_title))
 
 	f := C.CRoot_File_Open(c_name, (*C.CRoot_Option)(c_option), c_title, C.int32_t(compress), C.int32_t(netopt))
-	return &File{f:f}
+	return &File{f: f}
 }
 
 func (self *File) Cd(path string) bool {
@@ -91,7 +91,7 @@ func (self *File) GetTree(namecycle string) *Tree {
 		return nil
 	}
 	c_t := (C.CRoot_Tree)(unsafe.Pointer(o.o))
-	return &Tree{t:c_t, branches:make(map[string]gobranch)}
+	return &Tree{t: c_t, branches: make(map[string]gobranch)}
 }
 
 func (self *File) IsOpen() bool {
@@ -109,22 +109,26 @@ func (self *File) Write(name string, opt, bufsiz int) int {
 }
 
 // ObjArray
-type ObjArray C.CRoot_ObjArray
+type ObjArray struct {
+	c C.CRoot_ObjArray
+}
 
 // Branch
-type Branch C.CRoot_Branch
+type Branch struct {
+	c C.CRoot_Branch
+}
 
 // Tree
 type Tree struct {
-	t C.CRoot_Tree
+	t        C.CRoot_Tree
 	branches map[string]gobranch
 }
 
 type gobranch struct {
-	g interface{} // pointer to go-value
-	c  *ctypes.Value // the equivalent C-value
-	enc      ctypes.Encoder // go->c encoder
-	dec      ctypes.Decoder // c->go decoder
+	g   reflect.Value // pointer to go-value
+	c   ffi.Value     // the equivalent C-value
+	enc *ffi.Encoder  // go->c encoder
+	dec *ffi.Decoder  // c->go decoder
 }
 
 func NewTree(name, title string, splitlevel int) *Tree {
@@ -134,91 +138,113 @@ func NewTree(name, title string, splitlevel int) *Tree {
 	defer C.free(unsafe.Pointer(c_title))
 	t := C.CRoot_Tree_new(c_name, c_title, C.int32_t(splitlevel))
 	b := make(map[string]gobranch)
-	return &Tree{t:t, branches:b}
+	return &Tree{t: t, branches: b}
 }
 
-func (self *Tree) Delete() {
-	C.CRoot_Tree_delete(self.t)
-	self.t = nil
-	self.branches = nil
+func (t *Tree) Delete() {
+	C.CRoot_Tree_delete(t.t)
+	t.t = nil
+	t.branches = nil
 }
 
-func (self *Tree) Branch(name string, obj interface{}, bufsiz, splitlevel int) Branch {
+func (t *Tree) Branch(name string, obj interface{}, bufsiz, splitlevel int) Branch {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
-	//v := follow_ptr(reflect.ValueOf(obj))
-	//t := v.Type().Elem()
+	v := reflect.Indirect(reflect.ValueOf(obj))
+	// t := v.Type()
 	// register the type with Reflex
 	//genreflex(t)
-	br := gobranch{g:obj, c:ctypes.ValueOf(obj), enc:nil, dec:nil}
-	br.enc = ctypes.NewEncoder(br.c)
-	t := br.c.Type()
-	self.branches[name] = br
-	c_addr := br.c.UnsafeAddress()
+	br := gobranch{g: reflect.ValueOf(obj), c: ffi.ValueOf(v.Interface())}
+	br.enc = ffi.NewEncoder(br.c)
+	ct := br.c.Type()
+	println(">>>>>", br.c.Type().Name(), v.Type().Name())
+	t.branches[name] = br
+	c_addr := br.c.UnsafeAddr()
 	//c_addr := unsafe.Pointer(br.c.UnsafeAddress())
 	//c_addr := unsafe.Pointer(&br.c.Buffer()[0])
+
+	// err := ffi.Associate(ct, v.Type())
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
+	if ct.GoType() == nil {
+		panic("no Go-type for ffi.Type ["+ct.Name()+"] !!")
+	}
 	// register the type with Reflex
 	genreflex(br.c.Type())
 
-	classname := to_cxx_name(t.GoType())
+	classname := to_cxx_name(ct.GoType())
 	c_classname := C.CString(classname)
 	defer C.free(unsafe.Pointer(c_classname))
 
-	//fmt.Printf("Tree.Branch(%s, [%s], [%v], [%v] [%v])...\n", name, classname, br.c.Type(), br.c.UnsafeAddress(), br.c.Buffer()[0])
+	// fmt.Printf("Tree.Branch(%s, [%s], [%v], [%v] [%v])...\n", name, classname, br.c.Type(), br.c.UnsafeAddress(), br.c.Buffer()[0])
 
-	// c_buff := (*[]byte)(*(*unsafe.Pointer)(unsafe.Pointer(&(br.c.Buffer()[0]))))
-	// fmt.Printf(":>> %v (%v) (%v) \n:<<(%v) [%d,%d]\n",br.c.Buffer(), br.g, br.c.UnsafeAddress(), *c_buff, len(*c_buff), len(br.c.Buffer()))
+	// c_buff := br.c.Buffer()
+	// fmt.Printf(":>> %v (%v) (%v) \n:<<(%v) [%d,%d]\n",br.c.Buffer(), br.g, br.c.UnsafeAddress(), c_buff, len(c_buff), len(br.c.Buffer()))
 
-	b := C.CRoot_Tree_Branch(self.t, c_name, c_classname, unsafe.Pointer(&c_addr), C.int32_t(bufsiz), C.int32_t(splitlevel))
-	return Branch(b)
+	b := C.CRoot_Tree_Branch(t.t, c_name, c_classname, unsafe.Pointer(&c_addr), C.int32_t(bufsiz), C.int32_t(splitlevel))
+	return Branch{c: b}
 }
 
-func (self *Tree) Branch2(name string, objaddr interface{}, leaflist string, bufsiz int) Branch {
+func (t *Tree) Branch2(name string, objaddr interface{}, leaflist string, bufsiz int) Branch {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
-	v := ctypes.ValueOf(objaddr)
-	br := gobranch{g:objaddr, c:v, enc:nil, dec:nil}
-	br.enc = ctypes.NewEncoder(br.c)
-	self.branches[name] = br
-	c_addr := br.c.UnsafeAddress()
+	v := reflect.Indirect(reflect.ValueOf(objaddr))
+	br := gobranch{g: reflect.ValueOf(objaddr), c: ffi.ValueOf(v.Interface())}
+	br.enc = ffi.NewEncoder(br.c)
+	//ct := br.c.Type()
+	t.branches[name] = br
+	c_addr := br.c.UnsafeAddr()
+	genreflex(br.c.Type())
 
 	c_leaflist := C.CString(leaflist)
 	defer C.free(unsafe.Pointer(c_leaflist))
 
-	b := C.CRoot_Tree_Branch2(self.t, c_name, unsafe.Pointer(&c_addr), c_leaflist, C.int32_t(bufsiz))
-	return Branch(b)
+	b := C.CRoot_Tree_Branch2(t.t, c_name, unsafe.Pointer(c_addr), c_leaflist, C.int32_t(bufsiz))
+	return Branch{c: b}
 }
 
-func (self *Tree) Fill() int {
-	// synchronize branches: update ctypes.Value
-	for k,br := range self.branches {
-		//fmt.Printf("::> %v (%v) (%v)\n",br.c.Buffer(), br.g, br.c.UnsafeAddress())
-		_,err := br.enc.Encode(br.g)
+func (t *Tree) Fill() int {
+	// synchronize branches: update ffi.Value
+	for k, br := range t.branches {
+		fmt.Printf("::> [%v] %v (%v) (%v)\n", 
+		 	k, br.c.Buffer(), br.g, br.c.UnsafeAddr())
+		err := br.enc.Encode(br.g.Elem().Interface())
 		if err != nil {
-			fmt.Printf("**err** problem encoding branch [%s]: %s\n", k,err)
+			fmt.Printf("**err** problem encoding branch [%s]: %s\n", k, err)
+			panic("")
+			continue
 		}
+		fmt.Printf("<:: [%v] %v (%v) (%v) (%v)\n", 
+			k, br.c.Buffer(), br.g, br.c.UnsafeAddr(), br.c.Field(0).UnsafeAddr())
 	}
-	return int(C.CRoot_Tree_Fill(self.t))
+	fmt.Printf("--- Fill[%d] --- (%p)\n", t.GetEntries(), t.t)
+	o := int(C.CRoot_Tree_Fill(t.t))
+	for k, br := range t.branches {
+		fmt.Printf("=== [%v] %v (%v) (%v)\n", 
+		k, br.c.Buffer(), br.g, br.c.UnsafeAddr())
+	}
+	return o
 }
 
-func (self *Tree) GetBranch(name string) Branch {
+func (t *Tree) GetBranch(name string) Branch {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
-	b := C.CRoot_Tree_GetBranch(self.t, c_name)
-	return Branch(b)
+	b := C.CRoot_Tree_GetBranch(t.t, c_name)
+	return Branch{c: b}
 }
 
-func (self *Tree) GetEntries() int64 {
-	return int64(C.CRoot_Tree_GetEntries(self.t))
+func (t *Tree) GetEntries() int64 {
+	return int64(C.CRoot_Tree_GetEntries(t.t))
 }
 
-func (self *Tree) GetEntry(entry int64, getall int) int {
-	nbytes := C.CRoot_Tree_GetEntry(self.t, C.int64_t(entry), C.int32_t(getall))
-	if nbytes>0 {
-		for k,br := range self.branches {
+func (t *Tree) GetEntry(entry int64, getall int) int {
+	nbytes := C.CRoot_Tree_GetEntry(t.t, C.int64_t(entry), C.int32_t(getall))
+	if nbytes > 0 {
+		for k, br := range t.branches {
 			//fmt.Printf("::> %v (%v) (%v)\n",br.c.Buffer(), br.g, br.c.UnsafeAddress())
-			_,err := br.dec.Decode(br.g)
+			err := br.dec.Decode(br.g)
 			if err != nil {
 				fmt.Printf("**err** could not decode branch [%s]: %s\n", k, err)
 			}
@@ -227,23 +253,43 @@ func (self *Tree) GetEntry(entry int64, getall int) int {
 	return int(nbytes)
 }
 
-func (self *Tree) GetListOfBranches() ObjArray {
-	o := C.CRoot_Tree_GetListOfBranches(self.t)
-	return ObjArray(o)
+func (t *Tree) GetListOfBranches() ObjArray {
+	o := C.CRoot_Tree_GetListOfBranches(t.t)
+	return ObjArray{c: o}
 }
 
-func (self *Tree) GetListOfLeaves() ObjArray {
-	o := C.CRoot_Tree_GetListOfLeaves(self.t)
-	return ObjArray(o)
+func (t *Tree) GetListOfLeaves() ObjArray {
+	o := C.CRoot_Tree_GetListOfLeaves(t.t)
+	return ObjArray{c: o}
 }
 
-func (self *Tree) GetSelectedRows() int64 {
-	return int64(C.CRoot_Tree_GetSelectedRows(self.t))
+func (t *Tree) GetSelectedRows() int64 {
+	return int64(C.CRoot_Tree_GetSelectedRows(t.t))
 }
 
-func (self *Tree) GetVal(i int) []float64 {
-	c_data := C.CRoot_Tree_GetVal(self.t, C.int32_t(i))
-	sz := self.GetSelectedRows()
+func (t *Tree) GetVal(i int) []float64 {
+	c_data := C.CRoot_Tree_GetVal(t.t, C.int32_t(i))
+	sz := t.GetSelectedRows()
+	d := make([]float64, sz)
+	for j := int64(0); j != sz; sz++ {
+		d[j] = float64(C._go_croot_double_at(c_data, C.int(j)))
+	}
+	return d
+}
+
+func (t *Tree) GetV1() []float64 {
+	c_data := C.CRoot_Tree_GetV1(t.t)
+	sz := t.GetSelectedRows()
+	d := make([]float64, sz)
+	for j := int64(0); j != sz; sz++ {
+		d[j] = float64(C._go_croot_double_at(c_data, C.int(j)))
+	}
+	return d
+}
+
+func (t *Tree) GetV2() []float64 {
+	c_data := C.CRoot_Tree_GetV2(t.t)
+	sz := t.GetSelectedRows()
 	d := make([]float64, sz)
 	for j := int64(0); j!=sz; sz++ {
 		d[j] = float64(C._go_croot_double_at(c_data,C.int(j)))
@@ -251,107 +297,89 @@ func (self *Tree) GetVal(i int) []float64 {
 	return d
 }
 
-func (self *Tree) GetV1() []float64 {
-	c_data := C.CRoot_Tree_GetV1(self.t)
-	sz := self.GetSelectedRows()
+func (t *Tree) GetV3() []float64 {
+	c_data := C.CRoot_Tree_GetV3(t.t)
+	sz := t.GetSelectedRows()
 	d := make([]float64, sz)
-	for j := int64(0); j!=sz; sz++ {
-		d[j] = float64(C._go_croot_double_at(c_data,C.int(j)))
+	for j := int64(0); j != sz; sz++ {
+		d[j] = float64(C._go_croot_double_at(c_data, C.int(j)))
 	}
 	return d
 }
 
-func (self *Tree) GetV2() []float64 {
-	c_data := C.CRoot_Tree_GetV2(self.t)
-	sz := self.GetSelectedRows()
+func (t *Tree) GetV4() []float64 {
+	c_data := C.CRoot_Tree_GetV4(t.t)
+	sz := t.GetSelectedRows()
 	d := make([]float64, sz)
-	for j := int64(0); j!=sz; sz++ {
-		d[j] = float64(C._go_croot_double_at(c_data,C.int(j)))
+	for j := int64(0); j != sz; sz++ {
+		d[j] = float64(C._go_croot_double_at(c_data, C.int(j)))
 	}
 	return d
 }
 
-func (self *Tree) GetV3() []float64 {
-	c_data := C.CRoot_Tree_GetV3(self.t)
-	sz := self.GetSelectedRows()
+func (t *Tree) GetW() []float64 {
+	c_data := C.CRoot_Tree_GetW(t.t)
+	sz := t.GetSelectedRows()
 	d := make([]float64, sz)
-	for j := int64(0); j!=sz; sz++ {
-		d[j] = float64(C._go_croot_double_at(c_data,C.int(j)))
+	for j := int64(0); j != sz; sz++ {
+		d[j] = float64(C._go_croot_double_at(c_data, C.int(j)))
 	}
 	return d
 }
 
-func (self *Tree) GetV4() []float64 {
-	c_data := C.CRoot_Tree_GetV4(self.t)
-	sz := self.GetSelectedRows()
-	d := make([]float64, sz)
-	for j := int64(0); j!=sz; sz++ {
-		d[j] = float64(C._go_croot_double_at(c_data,C.int(j)))
-	}
-	return d
+func (t *Tree) LoadTree(entry int64) int64 {
+	return int64(C.CRoot_Tree_LoadTree(t.t, C.int64_t(entry)))
 }
 
-func (self *Tree) GetW() []float64 {
-	c_data := C.CRoot_Tree_GetW(self.t)
-	sz := self.GetSelectedRows()
-	d := make([]float64, sz)
-	for j := int64(0); j!=sz; sz++ {
-		d[j] = float64(C._go_croot_double_at(c_data,C.int(j)))
-	}
-	return d
-}
+// func (t *Tree) MakeClass
+// func (t *Tree) Notify
 
-func (self *Tree) LoadTree(entry int64) int64 {
-	return int64(C.CRoot_Tree_LoadTree(self.t, C.int64_t(entry)))
-}
-
-// func (self *Tree) MakeClass
-// func (self *Tree) Notify
-
-func (self *Tree) Print(option string) {
+func (t *Tree) Print(option string) {
 	c_option := C.CString(option)
 	defer C.free(unsafe.Pointer(c_option))
 
-	C.CRoot_Tree_Print(self.t, (*C.CRoot_Option)(c_option))
+	C.CRoot_Tree_Print(t.t, (*C.CRoot_Option)(c_option))
 }
 
-func (self *Tree) SetBranchAddress(name string, obj interface{}) int32 {
+func (t *Tree) SetBranchAddress(name string, obj interface{}) int32 {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
-	br := gobranch{g:obj, c:ctypes.ValueOf(obj), enc:nil, dec:nil}
-	br.dec = ctypes.NewDecoder(br.c)
-	self.branches[name] = br
+	v := reflect.Indirect(reflect.ValueOf(obj))
+	br := gobranch{g: reflect.ValueOf(obj), c: ffi.ValueOf(v.Interface())}
+	br.dec = ffi.NewDecoder(br.c)
+	t.branches[name] = br
 
 	genreflex(br.c.Type())
-	c_addr := br.c.UnsafeAddress()
+	c_addr := br.c.UnsafeAddr()
 	//fmt.Printf("setBranch(%s, %v)...\n", name, c_addr)
-	rc := C.CRoot_Tree_SetBranchAddress(self.t, c_name, unsafe.Pointer(&c_addr), nil)
+	rc := C.CRoot_Tree_SetBranchAddress(t.t, c_name, unsafe.Pointer(c_addr), nil)
 	return int32(rc)
 }
 
-func (self *Tree) SetBranchStatus(name string, status bool) uint32 {
+func (t *Tree) SetBranchStatus(name string, status bool) uint32 {
 	c_found := C.uint32_t(0)
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
-	C.CRoot_Tree_SetBranchStatus(self.t, c_name, bool2c(status), &c_found)
+	C.CRoot_Tree_SetBranchStatus(t.t, c_name, bool2c(status), &c_found)
 	return uint32(c_found)
 }
 
-func (self *Tree) Write(name string, option, bufsize int) int {
+func (t *Tree) Write(name string, option, bufsize int) int {
 	if len(name) != 0 {
 		c_name := C.CString(name)
 		defer C.free(unsafe.Pointer(c_name))
-		return int(C.CRoot_Tree_Write(self.t, c_name, C.int32_t(option), C.int32_t(bufsize)))
+		return int(C.CRoot_Tree_Write(t.t, c_name, C.int32_t(option), C.int32_t(bufsize)))
 	}
 	c_name := (*C.char)(unsafe.Pointer(nil))
-	return int(C.CRoot_Tree_Write(self.t, c_name, C.int32_t(option), C.int32_t(bufsize)))
+	return int(C.CRoot_Tree_Write(t.t, c_name, C.int32_t(option), C.int32_t(bufsize)))
 }
 
 // TRandom
 type Random struct {
 	r C.CRoot_Random
 }
+
 var GRandom *Random = nil
 
 func (r *Random) Gaus(mean, sigma float64) float64 {
@@ -359,14 +387,14 @@ func (r *Random) Gaus(mean, sigma float64) float64 {
 	return float64(val)
 }
 
-func (r *Random) Rannorf() (a,b float32) {
+func (r *Random) Rannorf() (a, b float32) {
 	c_a := (*C.float)(unsafe.Pointer(&a))
 	c_b := (*C.float)(unsafe.Pointer(&b))
 	C.CRoot_Random_Rannorf(r.r, c_a, c_b)
 	return
 }
 
-func (r *Random) Rannord() (a,b float64) {
+func (r *Random) Rannord() (a, b float64) {
 	c_a := (*C.double)(unsafe.Pointer(&a))
 	c_b := (*C.double)(unsafe.Pointer(&b))
 	C.CRoot_Random_Rannord(r.r, c_a, c_b)
@@ -380,7 +408,7 @@ func (r *Random) Rndm(i int) float64 {
 
 func init() {
 	fmt.Printf(":: initializing go-croot...\n")
-	GRandom = &Random{r:C.CRoot_gRandom}
+	GRandom = &Random{r: C.CRoot_gRandom}
 	fmt.Printf(":: initializing go-croot...[done]\n")
 }
 

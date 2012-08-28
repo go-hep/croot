@@ -13,21 +13,23 @@ type Det struct {
 }
 
 type Event struct {
+	I int64
 	A Det
 	B Det
 }
 
-var evtmax *int = flag.Int("evtmax", 10000, "number of events to generate")
+var evtmax *int64 = flag.Int64("evtmax", 10000, "number of events to generate")
 var fname *string = flag.String("fname", "event.root", "file to create")
 
 func tree0(f *croot.File) {
 	// create a tree
 	tree := croot.NewTree("tree", "tree", 32)
-	e := &Event{}
+	e := Event{}
 	
 	bufsiz := 32000
 	
 	// create a branch with energy
+	tree.Branch2("evt_i",   &e.I,   "evt_i/L",   bufsiz)
 	tree.Branch2("evt_a_e", &e.A.E, "evt_a_e/D", bufsiz)
 	tree.Branch2("evt_a_t", &e.A.T, "evt_a_t/D", bufsiz)
 	tree.Branch2("evt_b_e", &e.B.E, "evt_b_e/D", bufsiz)
@@ -35,11 +37,12 @@ func tree0(f *croot.File) {
 
 	// fill some events with random numbers
 	nevents := *evtmax
-	for iev := 0; iev != nevents; iev++ {
+	for iev := int64(0); iev != nevents; iev++ {
 		if iev%1000 == 0 {
 			fmt.Printf(":: processing event %d...\n", iev)
 		}
 
+		e.I = iev
 		// the two energies follow a gaussian distribution
 		ea, eb := croot.GRandom.Rannord()
 		e.A.E = ea
@@ -49,6 +52,7 @@ func tree0(f *croot.File) {
 		e.B.T = e.A.T * croot.GRandom.Gaus(0., 1.)
 
 		if iev%1000 == 0 {
+			fmt.Printf("evt.i=   %8d\n",    e.I)
 			fmt.Printf("evt.a.e= %8.3f\n", e.A.E)
 			fmt.Printf("evt.a.t= %8.3f\n", e.A.T)
 			fmt.Printf("evt.b.e= %8.3f\n", e.B.E)

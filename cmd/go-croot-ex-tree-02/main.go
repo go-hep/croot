@@ -3,10 +3,13 @@ package main
 import (
 	"fmt"
 	"flag"
+	"math/rand"
 
 	"github.com/sbinet/go-croot/pkg/croot"
+	//"github.com/sbinet/go-ffi/pkg/ffi"
 )
 
+/*
 type Det struct {
 	E float64
 	T float64
@@ -16,6 +19,12 @@ type Event struct {
 	A Det
 	B Det
 }
+*/
+
+type Event struct {
+	//A float64
+	I int64
+}
 
 var evtmax *int = flag.Int("evtmax", 10000, "number of events to generate")
 var fname *string = flag.String("fname", "event.root", "file to create")
@@ -23,7 +32,7 @@ var fname *string = flag.String("fname", "event.root", "file to create")
 func tree0(f *croot.File) {
 	// create a tree
 	tree := croot.NewTree("tree", "tree", 32)
-	e := &Event{}
+	e := Event{}
 
 	bufsiz := 32000
 
@@ -37,10 +46,10 @@ func tree0(f *croot.File) {
 			fmt.Printf(":: processing event %d...\n", iev)
 		}
 
+		/*
 		// the two energies follow a gaussian distribution
-		ea, eb := croot.GRandom.Rannord()
-		e.A.E = ea
-		e.B.E = eb
+		e.A.E = rand.NormFloat64() //ea
+		e.B.E = rand.NormFloat64() //eb
 
 		e.A.T = croot.GRandom.Rndm(1)
 		e.B.T = e.A.T * croot.GRandom.Gaus(0., 1.)
@@ -51,6 +60,21 @@ func tree0(f *croot.File) {
 			fmt.Printf("evt.b.e= %8.3f\n", e.B.E)
 			fmt.Printf("evt.b.t= %8.3f\n", e.B.T)
 		}
+		 */
+			rand.NormFloat64()
+		e.I = int64(iev)
+		//e.A = float64(iev)
+		fmt.Printf("=====\nievt: %d\n", iev)
+		//fmt.Printf("evt.a= %8.3f\n", e.A)
+		fmt.Printf("evt.i= %v\n", e.I)
+		// ee := Event{}
+		// c_val := ffi.ValueOf(e)
+		// c_enc := ffi.NewEncoder(c_val)
+		// _ = c_enc.Encode(e)
+		// c_dec := ffi.NewDecoder(c_val)
+		// c_dec.Decode(&ee)
+		// //fmt.Printf("eee.a= %8.3f\n", ee.A)
+		// fmt.Printf("eee.i= %v\n", ee.I)
 		tree.Fill()
 	}
 	f.Write("", 0, 0)
