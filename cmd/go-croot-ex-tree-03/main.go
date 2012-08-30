@@ -23,10 +23,9 @@ var fname *string = flag.String("fname", "event.root", "file to read back")
 
 func tree0(f *croot.File) {
 	t := f.GetTree("tree")
-	//e := (*Event)(nil)//
-	e := Event{}
+	e := &Event{}
 
-	t.SetBranchAddress("evt", &e)
+	t.SetBranchAddress("evt", e)
 
 	// fill some events with random numbers
 	nevents := int64(*evtmax)
@@ -54,6 +53,7 @@ func main() {
 	flag.Parse()
 	
 	croot.RegisterType(&Event{})
+
 	fmt.Printf(":: opening [%s]...\n", *fname)
 	f := croot.OpenFile(*fname, "read", "my event file", 1, 0)
 	tree0(f)

@@ -11,7 +11,8 @@ package croot
  void
  _go_reflex_dummy_ctor_stub(void *retaddr, void *mem, void *args, void *ctx)
  {
- printf("::go-reflex-dummy-ctor %p %p %p %p\n", retaddr, mem, args, ctx); abort();
+ //printf("::go-reflex-dummy-ctor %p %p %p %p\n", retaddr, mem, args, ctx); 
+ //abort();
  }
 
  static
@@ -21,7 +22,10 @@ package croot
  static
  void
  _go_reflex_dummy_dtor_stub(void *retaddr, void *mem, void *args, void *ctx)
- {}
+ {
+ //printf("::go-reflex-dummy-dtor %p %p %p %p\n", retaddr, mem, args, ctx); 
+ //abort();
+ }
 
  static
  void*
@@ -58,8 +62,17 @@ func init() {
 	reflexed_types = make(map[string]*ReflexType)
 }
 
+// RegisterType declares the (equivalent) C-layout of value v to ROOT so
+// values of the same type than v can be written out to ROOT files
 func RegisterType(v interface{}) {
-	t := ffi.ValueOf(v).Type()
+	rv := reflect.ValueOf(v)
+	if rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+	t := ffi.ValueOf(rv.Interface()).Type()
+	if t.Kind() == ffi.Ptr {
+		t = t.Elem()
+	}
 	//fmt.Printf("registering [%s] (sz:%d)...\n",t, t.Size())
 	genreflex(t)
 }

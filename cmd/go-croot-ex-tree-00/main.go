@@ -26,7 +26,7 @@ func tree0(f *croot.File) {
 	tree := croot.NewTree("tree", "tree", 32)
 	e := Event{}
 	
-	bufsiz := 32000
+	const bufsiz = 32000
 	
 	// create a branch with energy
 	tree.Branch2("evt_i",   &e.I,   "evt_i/L",   bufsiz)
