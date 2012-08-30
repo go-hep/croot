@@ -7,7 +7,7 @@ package croot
  #include <stdlib.h>
  #include <string.h>
 
- */
+*/
 import "C"
 
 // placeholder for Cintex
@@ -26,4 +26,5 @@ func init() {
 	Cintex.Enable()
 	//Cintex.SetDebug(100000)
 }
+
 // eof

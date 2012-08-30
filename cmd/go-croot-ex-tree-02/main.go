@@ -3,8 +3,8 @@ package main
 import "C"
 
 import (
-	"fmt"
 	"flag"
+	"fmt"
 	"math/rand"
 
 	"github.com/sbinet/go-croot/pkg/croot"
@@ -38,7 +38,6 @@ func tree0(f *croot.File) {
 			fmt.Printf(":: processing event %d...\n", iev)
 		}
 
-
 		// the two energies follow a gaussian distribution
 		e.A.E = rand.NormFloat64() //ea
 		e.B.E = rand.NormFloat64() //eb
@@ -63,4 +62,5 @@ func main() {
 	tree0(f)
 	f.Close("")
 }
+
 // EOF

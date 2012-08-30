@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"flag"
+	"fmt"
 
 	"github.com/sbinet/go-croot/pkg/croot"
 )
@@ -51,7 +51,7 @@ func tree0(f *croot.File) {
 
 func main() {
 	flag.Parse()
-	
+
 	croot.RegisterType(&Event{})
 
 	fmt.Printf(":: opening [%s]...\n", *fname)
@@ -60,4 +60,5 @@ func main() {
 	f.Close("")
 
 }
+
 // EOF

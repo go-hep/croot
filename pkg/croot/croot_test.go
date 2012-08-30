@@ -6,7 +6,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
-	
+
 	"github.com/sbinet/go-croot/pkg/croot"
 )
 
@@ -23,7 +23,7 @@ type Event struct {
 
 func TestTreeBuiltinsRW(t *testing.T) {
 	const fname = "simple-event.root"
-	const evtmax= 10000
+	const evtmax = 10000
 	const splitlevel = 32
 	const bufsiz = 32000
 	const compress = 1
@@ -44,7 +44,7 @@ func TestTreeBuiltinsRW(t *testing.T) {
 		e := Event{}
 
 		// create a branch with energy
-		tree.Branch2("evt_i",   &e.I,   "evt_i/L",   bufsiz)
+		tree.Branch2("evt_i", &e.I, "evt_i/L", bufsiz)
 		tree.Branch2("evt_a_e", &e.A.E, "evt_a_e/D", bufsiz)
 		tree.Branch2("evt_a_t", &e.A.T, "evt_a_t/D", bufsiz)
 		tree.Branch2("evt_b_e", &e.B.E, "evt_b_e/D", bufsiz)
@@ -65,10 +65,10 @@ func TestTreeBuiltinsRW(t *testing.T) {
 			e.B.E = src.NormFloat64()
 
 			e.A.T = src.Float64()
-			e.B.T = e.A.T * (src.NormFloat64() * 1. + 0.)
+			e.B.T = e.A.T * (src.NormFloat64()*1. + 0.)
 
 			if iev%1000 == 0 {
-				add(fmt.Sprintf("evt.i=   %8d\n",    e.I))
+				add(fmt.Sprintf("evt.i=   %8d\n", e.I))
 				add(fmt.Sprintf("evt.a.e= %8.3f\n", e.A.E))
 				add(fmt.Sprintf("evt.a.t= %8.3f\n", e.A.T))
 				add(fmt.Sprintf("evt.b.e= %8.3f\n", e.B.E))
@@ -76,7 +76,7 @@ func TestTreeBuiltinsRW(t *testing.T) {
 			}
 			tree.Fill()
 		}
-		f.Write("",0,0)
+		f.Write("", 0, 0)
 		f.Close("")
 	}
 
@@ -86,7 +86,7 @@ func TestTreeBuiltinsRW(t *testing.T) {
 		add := func(str string) {
 			chk = append(chk, str)
 		}
-		
+
 		f := croot.OpenFile(fname, "read", "croot event file", compress, netopt)
 		tree := f.GetTree("tree")
 
@@ -107,7 +107,7 @@ func TestTreeBuiltinsRW(t *testing.T) {
 				panic("error")
 			}
 			if iev%1000 == 0 {
-				add(fmt.Sprintf("evt.i=   %8d\n",    e.I))
+				add(fmt.Sprintf("evt.i=   %8d\n", e.I))
 				add(fmt.Sprintf("evt.a.e= %8.3f\n", e.A.E))
 				add(fmt.Sprintf("evt.a.t= %8.3f\n", e.A.T))
 				add(fmt.Sprintf("evt.b.e= %8.3f\n", e.B.E))
@@ -124,17 +124,16 @@ func TestTreeBuiltinsRW(t *testing.T) {
 	if !reflect.DeepEqual(ref, chk) {
 		t.Errorf("log files do not match")
 	}
-	
+
 	err := os.Remove(fname)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
 }
 
-
 func TestTreeStructRW(t *testing.T) {
 	const fname = "struct-event.root"
-	const evtmax= 10000
+	const evtmax = 10000
 	const splitlevel = 32
 	const bufsiz = 32000
 	const compress = 1
@@ -165,17 +164,16 @@ func TestTreeStructRW(t *testing.T) {
 				add(fmt.Sprintf(":: processing event %d...\n", iev))
 			}
 
-
 			e.I = iev
 			// the two energies follow a gaussian distribution
 			e.A.E = src.NormFloat64()
 			e.B.E = src.NormFloat64()
 
 			e.A.T = src.Float64()
-			e.B.T = e.A.T * (src.NormFloat64() * 1. + 0.)
+			e.B.T = e.A.T * (src.NormFloat64()*1. + 0.)
 
 			if iev%1000 == 0 {
-				add(fmt.Sprintf("evt.i=   %8d\n",    e.I))
+				add(fmt.Sprintf("evt.i=   %8d\n", e.I))
 				add(fmt.Sprintf("evt.a.e= %8.3f\n", e.A.E))
 				add(fmt.Sprintf("evt.a.t= %8.3f\n", e.A.T))
 				add(fmt.Sprintf("evt.b.e= %8.3f\n", e.B.E))
@@ -193,7 +191,7 @@ func TestTreeStructRW(t *testing.T) {
 		add := func(str string) {
 			chk = append(chk, str)
 		}
-		
+
 		f := croot.OpenFile(fname, "read", "croot event file", compress, netopt)
 		tree := f.GetTree("tree")
 
@@ -209,7 +207,7 @@ func TestTreeStructRW(t *testing.T) {
 				panic("error")
 			}
 			if iev%1000 == 0 {
-				add(fmt.Sprintf("evt.i=   %8d\n",    e.I))
+				add(fmt.Sprintf("evt.i=   %8d\n", e.I))
 				add(fmt.Sprintf("evt.a.e= %8.3f\n", e.A.E))
 				add(fmt.Sprintf("evt.a.t= %8.3f\n", e.A.T))
 				add(fmt.Sprintf("evt.b.e= %8.3f\n", e.B.E))
@@ -226,7 +224,7 @@ func TestTreeStructRW(t *testing.T) {
 	if !reflect.DeepEqual(ref, chk) {
 		t.Errorf("log files do not match")
 	}
-	
+
 	err := os.Remove(fname)
 	if err != nil {
 		t.Errorf(err.Error())

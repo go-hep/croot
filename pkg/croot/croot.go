@@ -163,7 +163,7 @@ func (t *Tree) Branch(name string, obj interface{}, bufsiz, splitlevel int) Bran
 	br := gobranch{g: ptr, c: ffi.ValueOf(val.Interface())}
 	ct := br.c.Type()
 	if ct.GoType() == nil {
-		panic("no Go-type for ffi.Type ["+ct.Name()+"] !!")
+		panic("no Go-type for ffi.Type [" + ct.Name() + "] !!")
 	}
 	// register the type with Reflex
 	genreflex(br.c.Type())
@@ -192,7 +192,7 @@ func (t *Tree) Branch2(name string, objaddr interface{}, leaflist string, bufsiz
 	br := gobranch{g: ptr, c: ffi.ValueOf(val.Interface())}
 	ct := br.c.Type()
 	if ct.GoType() == nil {
-		panic("no Go-type for ffi.Type ["+ct.Name()+"] !!")
+		panic("no Go-type for ffi.Type [" + ct.Name() + "] !!")
 	}
 	// register the type with Reflex
 	genreflex(br.c.Type())
@@ -206,7 +206,7 @@ func (t *Tree) Branch2(name string, objaddr interface{}, leaflist string, bufsiz
 	defer C.free(unsafe.Pointer(c_leaflist))
 
 	b := C.CRoot_Tree_Branch2(t.t, c_name, br.addr, c_leaflist, C.int32_t(bufsiz))
-	br.br = Branch{c: b} 
+	br.br = Branch{c: b}
 	t.branches[name] = br
 	return br.br
 }
@@ -338,7 +338,7 @@ func (t *Tree) SetBranchAddress(name string, obj interface{}) int32 {
 	br := gobranch{g: ptr, c: ffi.ValueOf(val.Interface())}
 	ct := br.c.Type()
 	if ct.GoType() == nil {
-		panic("no Go-type for ffi.Type ["+ct.Name()+"] !!")
+		panic("no Go-type for ffi.Type [" + ct.Name() + "] !!")
 	}
 	// register the type with Reflex
 	genreflex(br.c.Type())

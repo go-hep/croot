@@ -43,7 +43,9 @@ import (
 )
 
 type ctor_fct func(retaddr, mem, args, ctx unsafe.Pointer)
+
 var ctors []*ctor_fct
+
 //export GoCRoot_make_ctor
 func GoCRoot_make_ctor(sz uintptr) *ctor_fct {
 	fct := func(retaddr, mem, args, ctx unsafe.Pointer) {
@@ -101,7 +103,7 @@ func to_cxx_name(t reflect.Type) string {
 // helper function to create a Reflex::Type from a go.ffi.Type
 func genreflex(t ffi.Type) {
 	//fmt.Printf("::genreflex[%v]...\n", t)
-	_,ok := reflexed_types[t.Name()]
+	_, ok := reflexed_types[t.Name()]
 	if ok {
 		// already processed...
 		return
@@ -169,7 +171,7 @@ func genreflex(t ffi.Type) {
 func genreflex_struct(t ffi.Type) *ReflexType {
 	tname := t.Name()
 	if t.GoType() == nil {
-		panic("no go-type for ffi.Type [" +t.Name() +"]")
+		panic("no go-type for ffi.Type [" + t.Name() + "]")
 	}
 	full_name := to_cxx_name(t.GoType())
 	// fmt.Printf("::genreflex_struct[%s]...\n", full_name)
@@ -203,7 +205,7 @@ func genreflex_struct(t ffi.Type) *ReflexType {
 		tname,
 		stub_fct_ctor,
 		unsafe.Pointer(&sz),
-		uint32(Reflex_PUBLIC | Reflex_CONSTRUCTOR))
+		uint32(Reflex_PUBLIC|Reflex_CONSTRUCTOR))
 
 	ty_dtor := NewReflexFunctionTypeBuilder(ty_void)
 	stub_fct_dtor := (ReflexStubFunction)(C._get_go_reflex_dummy_dtor_stub())
@@ -212,7 +214,7 @@ func genreflex_struct(t ffi.Type) *ReflexType {
 		"~"+tname,
 		stub_fct_dtor,
 		nil,
-		uint32(Reflex_PUBLIC | Reflex_DESTRUCTOR))
+		uint32(Reflex_PUBLIC|Reflex_DESTRUCTOR))
 
 	bldr.Delete()
 	rt := ReflexType_ByName(tname)
@@ -226,7 +228,7 @@ func genreflex_struct(t ffi.Type) *ReflexType {
 // return a *croot.ReflexType from a ffi.Type one
 func rflx_type_from(t ffi.Type) *ReflexType {
 	var rflx *ReflexType = nil
-	rflx,ok := reflexed_types[t.Name()]
+	rflx, ok := reflexed_types[t.Name()]
 	if ok {
 		// already processed...
 		return rflx
@@ -306,9 +308,9 @@ func rflx_type_from(t ffi.Type) *ReflexType {
 	default:
 		panic(
 			fmt.Sprintf(
-			"no mapping reflex->reflect for type '%v' (kind=%s)",
-			t,
-			t.Kind().String()))
+				"no mapping reflex->reflect for type '%v' (kind=%s)",
+				t,
+				t.Kind().String()))
 	}
 
 	reflexed_types[t.Name()] = rflx
