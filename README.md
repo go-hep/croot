@@ -12,7 +12,10 @@ Installation
 Pre-requisites
 --------------
 
-You'll need `libffi` and `go-ffi`.
+- You'll need `libffi` and `go-ffi` to be able to read/write `Go` structs from/to `ROOT` files
+
+- you'll need `croot`, the C-API to `ROOT`. here: http://github.com/sbinet/croot
+
 
 Documentation
 -------------
