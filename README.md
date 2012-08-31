@@ -35,8 +35,6 @@ A typical write program would look like:
 ``` go
 package main
 
-import "C"
-
 import (
 	"fmt"
 	"flag"
