@@ -89,6 +89,9 @@ func TestTreeBuiltinsRW(t *testing.T) {
 
 		f := croot.OpenFile(fname, "read", "croot event file", compress, netopt)
 		tree := f.GetTree("tree")
+		if tree.GetEntries() != evtmax {
+			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
+		}
 
 		e := Event{}
 
@@ -194,6 +197,9 @@ func TestTreeStructRW(t *testing.T) {
 
 		f := croot.OpenFile(fname, "read", "croot event file", compress, netopt)
 		tree := f.GetTree("tree")
+		if tree.GetEntries() != evtmax {
+			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
+		}
 
 		e := Event{}
 		tree.SetBranchAddress("evt", &e)

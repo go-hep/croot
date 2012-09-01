@@ -1,7 +1,6 @@
 package croot
 
 /*
- #cgo LDFLAGS: -lcroot
  #include "croot.h"
 
  #include <stdlib.h>
