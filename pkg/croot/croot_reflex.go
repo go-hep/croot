@@ -1,12 +1,9 @@
 package croot
 
-/*
- #include "croot/croot.h"
-
- #include <stdlib.h>
- #include <string.h>
-
-*/
+// #include "croot/croot.h"
+//
+// #include <stdlib.h>
+// #include <string.h>
 import "C"
 
 import (
