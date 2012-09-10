@@ -28,6 +28,7 @@ type Tree interface {
 	GetBranch(name string) Branch
 	GetEntries() int64
 	GetEntry(entry int64, getall int) int
+	GetLeaf(name string) Leaf
 	GetListOfBranches() ObjArray
 	GetListOfLeaves() ObjArray
 	GetSelectedRows() int64
@@ -189,6 +190,13 @@ func (t *tree_impl) GetEntry(entry int64, getall int) int {
 		}
 	}
 	return int(nbytes)
+}
+
+func (t *tree_impl) GetLeaf(name string) Leaf {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+	l := C.CRoot_Tree_GetLeaf(t.c, c_name)
+	return &leaf_impl{c: l}
 }
 
 func (t *tree_impl) GetListOfBranches() ObjArray {
