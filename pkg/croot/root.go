@@ -16,7 +16,7 @@ type ROOT struct {
 
 var GRoot *ROOT = nil
 
-func (r *ROOT) GetFile(name string) *File {
+func (r *ROOT) GetFile(name string) File {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
@@ -24,7 +24,7 @@ func (r *ROOT) GetFile(name string) *File {
 	if c == nil {
 		return nil
 	}
-	return &File{c}
+	return &file_impl{c}
 }
 
 func init() {
