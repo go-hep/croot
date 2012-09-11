@@ -62,7 +62,6 @@ func (f *file_impl) Print(option Option) {
 	f.as_tobject().Print(option)
 }
 
-
 func OpenFile(name, option, title string, compress, netopt int) File {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
@@ -130,4 +129,5 @@ func init() {
 		return &file_impl{c: (C.CRoot_File)(o.cptr())}
 	}
 }
+
 // EOF

@@ -14,7 +14,7 @@ type Random interface {
 	Gaus(mean, sigma float64) float64
 	Rannorf() (a, b float32)
 	Rannord() (a, b float64)
-	Rndm(i int) float64 
+	Rndm(i int) float64
 }
 
 type random_impl struct {

@@ -40,7 +40,7 @@ func (o *object_impl) Clone(newname Option) Object {
 	if newobj == nil {
 		return nil
 	}
-	return &object_impl{c:newobj}
+	return &object_impl{c: newobj}
 }
 
 func (o *object_impl) FindObject(name string) Object {
@@ -50,7 +50,7 @@ func (o *object_impl) FindObject(name string) Object {
 	if obj == nil {
 		return nil
 	}
-	return &object_impl{c:obj}
+	return &object_impl{c: obj}
 }
 
 func (o *object_impl) GetName() string {

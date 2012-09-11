@@ -39,7 +39,7 @@ func to_gocroot(o c_object) Object {
 	cnv, ok := cnvmap[clsname]
 	if !ok {
 		fmt.Printf("**warning** type dispatch not implemented for [%s]\n", clsname)
-		return &object_impl{c:o.cptr()}
+		return &object_impl{c: o.cptr()}
 	}
 	return cnv(o)
 }
@@ -47,6 +47,7 @@ func to_gocroot(o c_object) Object {
 // cnvfct implements the conversion/c-cast of a C.CRoot_Object to its most
 // concrete go-croot equivalent type
 type cnvfct func(cptr c_object) Object
+
 var cnvmap = make(map[string]cnvfct)
 
 // EOF

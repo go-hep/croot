@@ -24,7 +24,7 @@ type Tree interface {
 	Branch(name string, obj interface{}, bufsiz, splitlevel int) Branch
 	Branch2(name string, objaddr interface{}, leaflist string, bufsiz int) Branch
 	Delete()
-	Fill() int 
+	Fill() int
 	GetBranch(name string) Branch
 	GetEntries() int64
 	GetEntry(entry int64, getall int) int
@@ -186,7 +186,9 @@ func (t *tree_impl) GetEntry(entry int64, getall int) int {
 	nbytes := C.CRoot_Tree_GetEntry(t.c, C.int64_t(entry), C.int32_t(getall))
 	if nbytes > 0 {
 		for _, br := range t.branches {
-			br.g.Elem().Set(br.c.GoValue())
+			if br.g.IsValid() {
+				br.g.Elem().Set(br.c.GoValue())
+			}
 		}
 	}
 	return int(nbytes)
@@ -291,9 +293,23 @@ func (t *tree_impl) SetBranchAddress(name string, obj interface{}) int32 {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
-	ptr := reflect.ValueOf(obj)
-	val := reflect.Indirect(ptr)
-	br := gobranch{g: ptr, c: ffi.ValueOf(val.Interface())}
+	var ptr reflect.Value
+	var val reflect.Value
+	var cval ffi.Value
+
+	switch obj.(type) {
+	case ffi.Value:
+		// pass through. let ptr be non-IsValid...
+		// and set cval to obj
+		cval = obj.(ffi.Value)
+		//panic("croot.Tree.SetBranchAddress(*ffi.Value): not implemented")
+	default:
+		ptr = reflect.ValueOf(obj)
+		val = reflect.Indirect(ptr)
+		cval = ffi.ValueOf(val.Interface())
+	}
+
+	br := gobranch{g: ptr, c: cval}
 	ct := br.c.Type()
 	if ct.GoType() == nil {
 		panic("no Go-type for ffi.Type [" + ct.Name() + "] !!")
