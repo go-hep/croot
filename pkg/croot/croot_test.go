@@ -14,7 +14,7 @@ import (
 type Det struct {
 	E float64
 	T float64
-	//Ts []float64 //FIXME: not yet...
+	Ts []float64 //FIXME: not yet...
 }
 
 type Event struct {

@@ -102,7 +102,7 @@ func to_cxx_name(t reflect.Type) string {
 // helper function to create a Reflex::Type from a go.ffi.Type
 func genreflex(t ffi.Type) {
 	//fmt.Printf("::genreflex[%v]...\n", t)
-	_, ok := reflexed_types[t.Name()]
+	_, ok := reflexed_types[ffi_name2rflx(t)]
 	if ok {
 		// already processed...
 		return
@@ -149,6 +149,8 @@ func genreflex(t ffi.Type) {
 
 	case ffi.Slice:
 		genreflex(t.Elem())
+		//fmt.Printf("--> slice: %s %v\n", t.Name(), t.Size())
+		rflx_type = genreflex_slice(t)
 
 	case ffi.String:
 		//FIXME
@@ -161,7 +163,7 @@ func genreflex(t ffi.Type) {
 	}
 
 	if rflx_type != nil {
-		reflexed_types[t.Name()] = rflx_type
+		reflexed_types[ffi_name2rflx(t)] = rflx_type
 	}
 	//fmt.Printf("::genreflex[%v]...[done]\n", t)
 }
@@ -224,10 +226,84 @@ func genreflex_struct(t ffi.Type) *ReflexType {
 	return rt
 }
 
+// helper function to create a Reflex::Class-type from a go.struct
+func genreflex_slice(t ffi.Type) *ReflexType {
+	tname := ffi_name2rflx(t)
+	if t.GoType() == nil {
+		panic("no go-type for ffi.Type [" + t.Name() + "]")
+	}
+	full_name := tname
+	//fmt.Printf("::genreflex_slice[%s]...\n", full_name)
+
+	bldr := NewReflexClassBuilder(
+		//FIXME: generate namespaces for each containing package
+		//       mentionned in 'full_name'
+		full_name,
+		t.Size(),
+		uint32(Reflex_PUBLIC|Reflex_ARTIFICIAL),
+		Reflex_STRUCT)
+
+	offset := uintptr(0)
+	offset += ffi.C_pointer.Size()
+	bldr.AddDataMember(
+		rflx_type_from(ffi.C_int),
+		"Len",
+		offset,
+		uint32(Reflex_PUBLIC),
+		)
+	offset += ffi.C_int.Size()
+
+	bldr.AddDataMember(
+		rflx_type_from(ffi.C_int),
+		"Cap",
+		offset,
+		uint32(Reflex_PUBLIC),
+		)
+	offset += ffi.C_int.Size()
+
+	offset = uintptr(0)
+	bldr.AddDataMember(
+		rflx_type_from(ffi.PtrTo(t.Elem())),
+		"Data",
+		offset,
+		uint32(Reflex_PUBLIC),
+		)
+	bldr.AddProperty("comment", "[Len]")
+
+	ty_void := ReflexType_ByName("void")
+	sz := C.size_t(t.Size())
+
+	ty_ctor := NewReflexFunctionTypeBuilder(ty_void)
+	stub_fct_ctor := (ReflexStubFunction)(C._get_go_reflex_dummy_ctor_stub())
+	bldr.AddFunctionMember(
+		ty_ctor,
+		tname,
+		stub_fct_ctor,
+		unsafe.Pointer(&sz),
+		uint32(Reflex_PUBLIC|Reflex_CONSTRUCTOR))
+
+	ty_dtor := NewReflexFunctionTypeBuilder(ty_void)
+	stub_fct_dtor := (ReflexStubFunction)(C._get_go_reflex_dummy_dtor_stub())
+	bldr.AddFunctionMember(
+		ty_dtor,
+		"~"+tname,
+		stub_fct_dtor,
+		nil,
+		uint32(Reflex_PUBLIC|Reflex_DESTRUCTOR))
+
+	bldr.Delete()
+	rt := ReflexType_ByName(tname)
+	// fmt.Printf(":: ffi-siz: %d\n", t.Size())
+	// fmt.Printf(":: %s-size: %d\n", rt.Name(), rt.SizeOf())
+	// fmt.Printf(":: %s-mbrs: %d\n", rt.Name(), rt.DataMemberSize(Reflex_INHERITEDMEMBERS_NO))
+	// fmt.Printf("::genreflex_slice[%s]...[done]\n", full_name)
+	return rt
+}
+
 // return a *croot.ReflexType from a ffi.Type one
 func rflx_type_from(t ffi.Type) *ReflexType {
 	var rflx *ReflexType = nil
-	rflx, ok := reflexed_types[t.Name()]
+	rflx, ok := reflexed_types[ffi_name2rflx(t)]
 	if ok {
 		// already processed...
 		return rflx
@@ -291,8 +367,9 @@ func rflx_type_from(t ffi.Type) *ReflexType {
 	case ffi.Ptr:
 		rflx = NewReflexPointerBuilder(rflx_type_from(t.Elem()))
 
-	// case ffi.Slice:
-	// 	rflx 
+	case ffi.Slice:
+		genreflex_slice(t)
+	 	rflx = ReflexType_ByName(ffi_name2rflx(t))
 
 	case ffi.String:
 		rflx = ReflexType_ByName("char*")
@@ -312,6 +389,16 @@ func rflx_type_from(t ffi.Type) *ReflexType {
 				t.Kind().String()))
 	}
 
-	reflexed_types[t.Name()] = rflx
+	reflexed_types[ffi_name2rflx(t)] = rflx
 	return rflx
+}
+
+func ffi_name2rflx(t ffi.Type) string {
+	switch t.Kind() {
+	case ffi.Slice:
+		return "golang::slice<" + t.Elem().Name() + ">"
+	default:
+		return t.Name()
+	}
+	panic("unreachable")
 }

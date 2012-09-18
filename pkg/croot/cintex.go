@@ -12,7 +12,7 @@ import "C"
 // placeholder for Cintex
 type cintex int
 
-var Cintex cintex
+const Cintex = cintex(0)
 
 func (c cintex) Enable() {
 	C.CRoot_Cintex_Enable()
@@ -21,6 +21,7 @@ func (c cintex) Enable() {
 func (c cintex) SetDebug(lvl int) {
 	C.CRoot_Cintex_SetDebug(C.int(lvl))
 }
+
 func init() {
 	Cintex.Enable()
 	//Cintex.SetDebug(100000)

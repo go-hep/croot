@@ -31,6 +31,10 @@ type ReflexFunctionBuilder struct {
 	f C.CRoot_Reflex_FunctionBuilder
 }
 
+type ReflexPropertyList struct {
+	c C.CRoot_Reflex_PropertyList
+}
+
 type ReflexStubFunction C.CRoot_Reflex_StubFunction
 type ReflexOffsetFunction C.CRoot_Reflex_OffsetFunction
 
@@ -287,6 +291,11 @@ func (t *ReflexType) Name() string {
 	return name
 }
 
+func (t *ReflexType) Properties() ReflexPropertyList {
+	plist := C.CRoot_Reflex_Type_Properties(t.t)
+	return ReflexPropertyList{c:plist}
+}
+
 func (t *ReflexType) RawType() *ReflexType {
 	r := C.CRoot_Reflex_Type_RawType(t.t)
 	return new_reflex_type(r)
@@ -417,6 +426,30 @@ func (m *ReflexMember) Stubfunction() ReflexStubFunction {
 	return (ReflexStubFunction)(fct)
 }
 
+func (m *ReflexMember) Properties() ReflexPropertyList {
+	plist := C.CRoot_Reflex_Member_Properties(m.m)
+	return ReflexPropertyList{c:plist}
+}
+
+// propertylist api
+
+func (list *ReflexPropertyList) Count() int {
+	sz := C.CRoot_Reflex_PropertyList_PropertyCount(list.c)
+	return int(sz)
+}
+
+func (list *ReflexPropertyList) AsString(idx int) string {
+	c_str := C.CRoot_Reflex_PropertyList_PropertyAsString(list.c, C.size_t(idx))
+	defer C.free(unsafe.Pointer(c_str))
+	return C.GoString(c_str)
+}
+
+func (list *ReflexPropertyList) Keys() string {
+	c_str := C.CRoot_Reflex_PropertyList_PropertyKeys(list.c)
+	defer C.free(unsafe.Pointer(c_str))
+	return C.GoString(c_str)
+}
+
 func NewReflexPointerBuilder(r *ReflexType) *ReflexType {
 	ptr := C.CRoot_Reflex_PointerBuilder_new(r.t)
 	return new_reflex_type(ptr)
@@ -481,6 +514,14 @@ func (c *ReflexClassBuilder) AddFunctionMember(t *ReflexType, name string, stubF
 	c_params := (*C.char)(c_null)
 	c_stubFct := C.CRoot_Reflex_StubFunction(stubFct)
 	C.CRoot_Reflex_ClassBuilder_AddFunctionMember(c.c, t.t, c_name, c_stubFct, c_ctx, c_params, C.uint(modifiers))
+}
+
+func (c *ReflexClassBuilder) AddProperty(key, value string) {
+	c_key := C.CString(key)
+	defer C.free(unsafe.Pointer(c_key))
+	c_value := C.CString(value)
+	defer C.free(unsafe.Pointer(c_value))
+	C.CRoot_Reflex_ClassBuilder_AddProperty(c.c, c_key, c_value)
 }
 
 func (c *ReflexClassBuilder) ToType() *ReflexType {
