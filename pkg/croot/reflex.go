@@ -293,7 +293,7 @@ func (t *ReflexType) Name() string {
 
 func (t *ReflexType) Properties() ReflexPropertyList {
 	plist := C.CRoot_Reflex_Type_Properties(t.t)
-	return ReflexPropertyList{c:plist}
+	return ReflexPropertyList{c: plist}
 }
 
 func (t *ReflexType) RawType() *ReflexType {
@@ -428,7 +428,7 @@ func (m *ReflexMember) Stubfunction() ReflexStubFunction {
 
 func (m *ReflexMember) Properties() ReflexPropertyList {
 	plist := C.CRoot_Reflex_Member_Properties(m.m)
-	return ReflexPropertyList{c:plist}
+	return ReflexPropertyList{c: plist}
 }
 
 // propertylist api

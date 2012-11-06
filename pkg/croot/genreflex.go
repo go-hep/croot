@@ -250,7 +250,7 @@ func genreflex_slice(t ffi.Type) *ReflexType {
 		"Len",
 		offset,
 		uint32(Reflex_PUBLIC),
-		)
+	)
 	offset += ffi.C_int.Size()
 
 	bldr.AddDataMember(
@@ -258,7 +258,7 @@ func genreflex_slice(t ffi.Type) *ReflexType {
 		"Cap",
 		offset,
 		uint32(Reflex_PUBLIC),
-		)
+	)
 	offset += ffi.C_int.Size()
 
 	offset = uintptr(0)
@@ -267,7 +267,7 @@ func genreflex_slice(t ffi.Type) *ReflexType {
 		"Data",
 		offset,
 		uint32(Reflex_PUBLIC),
-		)
+	)
 	bldr.AddProperty("comment", "[Len]")
 
 	ty_void := ReflexType_ByName("void")
@@ -369,7 +369,7 @@ func rflx_type_from(t ffi.Type) *ReflexType {
 
 	case ffi.Slice:
 		genreflex_slice(t)
-	 	rflx = ReflexType_ByName(ffi_name2rflx(t))
+		rflx = ReflexType_ByName(ffi_name2rflx(t))
 
 	case ffi.String:
 		rflx = ReflexType_ByName("char*")

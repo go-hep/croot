@@ -13,7 +13,7 @@ import "C"
 import (
 	"reflect"
 	"unsafe"
-
+	//"fmt"
 	"github.com/sbinet/go-ffi/pkg/ffi"
 )
 
@@ -87,6 +87,10 @@ type gobranch struct {
 	buf  uintptr        // pointer to C-value buffer
 	addr unsafe.Pointer // address of that C-value buffer
 	br   *branch_impl
+}
+
+func (br gobranch) update_from_go() {
+	br.c.SetValue(br.g.Elem())
 }
 
 func NewTree(name, title string, splitlevel int) Tree {
@@ -163,11 +167,50 @@ func (t *tree_impl) Branch2(name string, objaddr interface{}, leaflist string, b
 }
 
 func (t *tree_impl) Fill() int {
+	//addrs := []uintptr{}
 	// synchronize branches: update ffi.Value
-	for _, br := range t.branches {
-		br.c.SetValue(br.g.Elem())
+	for n := range t.branches {
+		t.branches[n].update_from_go() //c.SetValue(t.branches[n].g.Elem())
+		// v := br.c
+		// addrs = []uintptr{v.UnsafeAddr()}
+		// switch k:=v.Type().Kind(); k {
+		// case ffi.Array:
+		// 	for i := 0; i < v.Len(); i++ {
+		// 		addrs = append(addrs, v.Index(i).UnsafeAddrs()...)
+		// 	}
+		// case ffi.Slice:
+		// 	for i := 0; i < v.Len(); i++ {
+		// 		addrs = append(addrs, v.Index(i).UnsafeAddrs()...)
+		// 	}
+		// case ffi.Struct:
+		// 	for i := 0; i < v.NumField(); i++ {
+		// 		addrs = append(addrs, v.Field(i).UnsafeAddrs()...)
+		// 	}
+		// case ffi.String:
+		// 	panic("ffi.Value.UnsafeAddrs: String not implemented")
+		// }
+
+		// if n == "evt" {
+		// 	fs := br.g.Elem().Field(1).Field(2)
+		// 	cfs := br.c.Field(1).Field(2)
+		// 	if cfs.Len() != fs.Len() {
+		// 		panic(fmt.Sprintf("err"))
+		// 	}
+		// 	if false {
+		// 	fmt.Printf("Fs:  0x%x [0x%x]\nCFs: 0x%x [0x%x]\n", 
+		// 		fs.UnsafeAddr(), fs.Index(1).UnsafeAddr(),
+		// 		cfs.UnsafeAddr(), cfs.Index(1).UnsafeAddr())
+		// 	} else /*if false*/ {
+		// 		br.c.Field(1).Field(2).Index(0).UnsafeAddr()
+		// 		br.c.Field(2).Field(2).Index(0).UnsafeAddr()
+		// 	}
+		// }
 	}
 	o := int(C.CRoot_Tree_Fill(t.c))
+	// fmt.Printf("--addrs: %d\n", len(addrs))
+	// if o > 0 {
+	// 	addrs = addrs[:0]
+	// }
 	return o
 }
 
