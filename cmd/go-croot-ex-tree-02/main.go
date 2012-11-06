@@ -23,7 +23,7 @@ type Event struct {
 var evtmax *int = flag.Int("evtmax", 10000, "number of events to generate")
 var fname *string = flag.String("fname", "event.root", "file to create")
 
-func tree0(f *croot.File) {
+func tree0(f croot.File) {
 	// create a tree
 	tree := croot.NewTree("tree", "tree", 32)
 	e := &Event{}
