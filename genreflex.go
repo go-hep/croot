@@ -10,7 +10,7 @@ package croot
  void
  _go_reflex_dummy_ctor_stub(void *retaddr, void *mem, void *args, void *ctx)
  {
- //printf("::go-reflex-dummy-ctor %p %p %p %p\n", retaddr, mem, args, ctx); 
+ //printf("::go-reflex-dummy-ctor %p %p %p %p\n", retaddr, mem, args, ctx);
  //abort();
  }
 
@@ -22,7 +22,7 @@ package croot
  void
  _go_reflex_dummy_dtor_stub(void *retaddr, void *mem, void *args, void *ctx)
  {
- //printf("::go-reflex-dummy-dtor %p %p %p %p\n", retaddr, mem, args, ctx); 
+ //printf("::go-reflex-dummy-dtor %p %p %p %p\n", retaddr, mem, args, ctx);
  //abort();
  }
 

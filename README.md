@@ -6,7 +6,7 @@ Go bindings to the C-API of ROOT (CRoot).
 Installation
 ------------
 
-    $ go get github.com/sbinet/go-croot/pkg/croot
+    $ go get github.com/sbinet/go-croot
 
 
 Pre-requisites
@@ -20,7 +20,7 @@ Pre-requisites
 Documentation
 -------------
 
- http://go.pkgdoc.org/github.com/sbinet/go-croot/pkg/croot
+ http://godoc.org/github.com/sbinet/go-croot
 
 
 Example
@@ -40,7 +40,7 @@ import (
 	"flag"
 	"math/rand"
 
-	"github.com/sbinet/go-croot/pkg/croot"
+	"github.com/sbinet/go-croot"
 )
 
 type Det struct {
@@ -107,7 +107,7 @@ import (
 	"fmt"
 	"flag"
 
-	"github.com/sbinet/go-croot/pkg/croot"
+	"github.com/sbinet/go-croot"
 )
 
 type Det struct {

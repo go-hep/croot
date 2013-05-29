@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/sbinet/go-croot/pkg/croot"
+	"github.com/sbinet/go-croot"
 )
 
 type Det struct {
