@@ -3,16 +3,21 @@
 # license that can be found in the LICENSE file.
 
 ROOT_CONFIG := root-config
-ROOT_CPPFLAGS   := $(shell $(ROOT_CONFIG) --cflags)
-ROOT_LDFLAGS  := $(shell $(ROOT_CONFIG) --libs --ldflags)
+ROOT_CFLAGS := $(shell $(ROOT_CONFIG) --cflags)
+ROOT_LDFLAGS := $(shell $(ROOT_CONFIG) --libs --ldflags) -lReflex -lCintex
 
 CGO_LDFLAGS := "$(ROOT_LDFLAGS)"
-CGO_CFLAGS  := "$(ROOT_CFLAGS)"
+CGO_CFLAGS  := "$(ROOT_CFLAGS) -I."
 
 # default to gc, but allow caller to override on command line
 GO_COMPILER:=$(GC)
 ifeq ($(GO_COMPILER),)
 	GO_COMPILER:="gc"
+endif
+
+GO_VERBOSE := $(VERBOSE)
+ifneq ($(GO_VERBOSE),)
+	GO_VERBOSE:="-v"
 endif
 
 # FIXME: until go-1.2 is released, we need to use 'goxx' instead of 'go'
@@ -21,18 +26,18 @@ GOCMD := goxx
 
 build_cwd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
- CGO_CFLAGS=$(CGO_CFLAGS) \
- $(GOCMD) build -compiler=$(GO_COMPILER) .
+ CGO_CPPFLAGS=$(CGO_CFLAGS) \
+ $(GOCMD) build $(GO_VERBOSE) -compiler=$(GO_COMPILER) .
 
 install_cwd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
- CGO_CFLAGS=$(CGO_CFLAGS) \
- $(GOCMD) install -compiler=$(GO_COMPILER) .
+ CGO_CPPFLAGS=$(CGO_CFLAGS) \
+ $(GOCMD) install $(GO_VERBOSE) -compiler=$(GO_COMPILER) .
 
 all: install
 
 install:
-	$(install_cwd)
+	@$(install_cwd)
 
 build:
-	$(build_cwd)
+	@$(build_cwd)
