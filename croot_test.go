@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sbinet/go-croot"
+	"github.com/go-hep/croot"
 	"github.com/sbinet/go-ffi/pkg/ffi"
 )
 

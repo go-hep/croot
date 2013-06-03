@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/sbinet/go-croot"
+	"github.com/go-hep/croot"
 )
 
 type Det struct {
