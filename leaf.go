@@ -79,9 +79,27 @@ func (l *leaf_impl) GetValuePointer() uintptr {
 	return uintptr(ptr)
 }
 
+// LeafI
+type LeafI interface {
+	Leaf
+	GetValue(idx int) float64
+}
+
+type leaf_i_impl struct {
+	c C.CRoot_LeafI
+}
+
+func (l *leaf_i_impl) GetValue(idx int) float64 {
+	o := C.CRoot_LeafI_GetValue(l.c, C.int(idx))
+	return float64(o)
+}
+
 func init() {
 	cnvmap["TLeaf"] = func(o c_object) Object {
 		return &leaf_impl{c: (C.CRoot_Leaf)(o.cptr())}
+	}
+	cnvmap["TLeafI"] = func(o c_object) Object {
+		return &leaf_i_impl{c: (C.CRoot_LeafI)(o.cptr())}
 	}
 }
 

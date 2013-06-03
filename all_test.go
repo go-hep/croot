@@ -22,6 +22,15 @@ type Event struct {
 	B Det
 }
 
+type Cluster struct {
+	Cells []Cell
+}
+
+type Cell struct {
+	Pos [3]float64
+	Ene float64
+}
+
 func TestTreeBuiltinsRW(t *testing.T) {
 	const fname = "simple-event.root"
 	const evtmax = 10000

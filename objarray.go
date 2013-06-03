@@ -15,6 +15,7 @@ type ObjArray interface {
 	Object
 	At(idx int64) Object
 	GetSize() int64
+	GetEntries() int64
 }
 
 type objarray_impl struct {
@@ -65,6 +66,10 @@ func (o *objarray_impl) At(i int64) Object {
 
 func (o *objarray_impl) GetSize() int64 {
 	return int64(C.CRoot_ObjArray_GetSize(o.c))
+}
+
+func (o *objarray_impl) GetEntries() int64 {
+	return int64(C.CRoot_ObjArray_GetEntries(o.c))
 }
 
 // EOF

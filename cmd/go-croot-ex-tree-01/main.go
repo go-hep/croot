@@ -58,7 +58,10 @@ func main() {
 
 	croot.RegisterType(&Event{})
 	fmt.Printf(":: opening [%s]...\n", *fname)
-	f := croot.OpenFile(*fname, "read", "my event file", 1, 0)
+	f, err := croot.OpenFile(*fname, "read", "my event file", 1, 0)
+	if err != nil {
+		panic(err)
+	}
 	tree0(f)
 	f.Close("")
 

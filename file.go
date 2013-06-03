@@ -7,6 +7,7 @@ package croot
 import "C"
 
 import (
+	"fmt"
 	"unsafe"
 )
 
@@ -62,7 +63,7 @@ func (f *file_impl) Print(option Option) {
 	f.as_tobject().Print(option)
 }
 
-func OpenFile(name, option, title string, compress, netopt int) File {
+func OpenFile(name, option, title string, compress, netopt int) (File, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	c_option := C.CString(option)
@@ -71,7 +72,10 @@ func OpenFile(name, option, title string, compress, netopt int) File {
 	defer C.free(unsafe.Pointer(c_title))
 
 	f := C.CRoot_File_Open(c_name, (*C.CRoot_Option)(c_option), c_title, C.int32_t(compress), C.int32_t(netopt))
-	return &file_impl{c: f}
+	if f == nil {
+		return nil, fmt.Errorf("croot.OpenFile: could not open file [%s]", name)
+	}
+	return &file_impl{c: f}, nil
 }
 
 func (f *file_impl) Cd(path string) bool {

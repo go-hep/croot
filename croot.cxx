@@ -3,6 +3,9 @@
 #include "TBranch.h"
 #include "TBranchElement.h"
 #include "TLeaf.h"
+#include "TLeafI.h"
+#include "TLeafF.h"
+#include "TLeafD.h"
 #include "TTree.h"
 #include "TChain.h"
 
@@ -69,6 +72,12 @@ int64_t
 CRoot_ObjArray_GetSize(CRoot_ObjArray self)
 {
   return int64_t(((TObjArray*)self)->GetSize());
+}
+
+int64_t
+CRoot_ObjArray_GetEntries(CRoot_ObjArray self)
+{
+  return int64_t(((TObjArray*)self)->GetEntries());
 }
 
 CRoot_Object
@@ -367,6 +376,28 @@ CRoot_Leaf_GetValuePointer(CRoot_Leaf self)
 {
   return ((TLeaf*)self)->GetValuePointer();
 }
+
+/* TLeafI */
+double
+CRoot_LeafI_GetValue(CRoot_LeafI self, int idx)
+{
+  return ((TLeafI*)self)->GetValue(idx);
+}
+
+/* TLeafF */
+double
+CRoot_LeafF_GetValue(CRoot_LeafF self, int idx)
+{
+  return ((TLeafF*)self)->GetValue(idx);  
+}
+
+/* TLeafD */
+double
+CRoot_LeafD_GetValue(CRoot_LeafD self, int idx)
+{
+  return ((TLeafD*)self)->GetValue(idx);    
+}
+
 
 /* TBranchElement */
 char*

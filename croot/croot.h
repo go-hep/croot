@@ -76,6 +76,10 @@ int64_t
 CRoot_ObjArray_GetSize(CRoot_ObjArray self);
 
 CROOT_API
+int64_t
+CRoot_ObjArray_GetEntries(CRoot_ObjArray self);
+
+CROOT_API
 CRoot_Object
 CRoot_ObjArray_At(CRoot_ObjArray self, int64_t idx);
 
@@ -123,6 +127,27 @@ CRoot_Leaf_GetTypeName(CRoot_Leaf self);
 CROOT_API
 void*
 CRoot_Leaf_GetValuePointer(CRoot_Leaf self);
+
+/* TLeafI */
+typedef void *CRoot_LeafI;
+
+CROOT_API
+double
+CRoot_LeafI_GetValue(CRoot_LeafI self, int idx);
+
+/* TLeafF */
+typedef void *CRoot_LeafF;
+
+CROOT_API
+double
+CRoot_LeafF_GetValue(CRoot_LeafF self, int idx);
+
+/* TLeafD */
+typedef void *CRoot_LeafD;
+
+CROOT_API
+double
+CRoot_LeafD_GetValue(CRoot_LeafD self, int idx);
 
 /* TTree */
 typedef void* CRoot_Tree;

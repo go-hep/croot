@@ -65,7 +65,10 @@ func tree0(f croot.File) {
 
 func main() {
 	flag.Parse()
-	f := croot.OpenFile(*fname, "recreate", "my event file", 1, 0)
+	f, err := croot.OpenFile(*fname, "recreate", "my event file", 1, 0)
+	if err != nil {
+		panic(err)
+	}
 	tree0(f)
 	f.Close("")
 }
