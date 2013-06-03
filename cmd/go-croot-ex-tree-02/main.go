@@ -16,11 +16,12 @@ type Det struct {
 }
 
 type Event struct {
+	I int64
 	A Det
 	B Det
 }
 
-var evtmax *int = flag.Int("evtmax", 10000, "number of events to generate")
+var evtmax *int64 = flag.Int64("evtmax", 10000, "number of events to generate")
 var fname *string = flag.String("fname", "event.root", "file to create")
 
 func tree0(f croot.File) {
@@ -31,13 +32,16 @@ func tree0(f croot.File) {
 
 	tree.Branch("evt", e, bufsiz, 0)
 
+	var err error
+
 	// fill some events with random numbers
 	nevents := *evtmax
-	for iev := 0; iev != nevents; iev++ {
+	for iev := int64(0); iev != nevents; iev++ {
 		if iev%1000 == 0 {
 			fmt.Printf(":: processing event %d...\n", iev)
 		}
 
+		e.I = iev
 		// the two energies follow a gaussian distribution
 		e.A.E = rand.NormFloat64() //ea
 		e.B.E = rand.NormFloat64() //eb
@@ -51,7 +55,10 @@ func tree0(f croot.File) {
 			fmt.Printf("evt.b.e= %8.3f\n", e.B.E)
 			fmt.Printf("evt.b.t= %8.3f\n", e.B.T)
 		}
-		tree.Fill()
+		_, err = tree.Fill()
+		if err != nil {
+			panic(err)
+		}
 	}
 	f.Write("", 0, 0)
 }

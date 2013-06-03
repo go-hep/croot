@@ -4,7 +4,7 @@
 
 ROOT_CONFIG := root-config
 ROOT_CFLAGS := $(shell $(ROOT_CONFIG) --cflags)
-ROOT_LDFLAGS := $(shell $(ROOT_CONFIG) --libs --ldflags) -lReflex -lCintex
+ROOT_LDFLAGS := $(shell $(ROOT_CONFIG) --libs --ldflags) -lReflex -lCintex -lstdc++
 
 CGO_LDFLAGS := "$(ROOT_LDFLAGS)"
 CGO_CFLAGS  := "$(ROOT_CFLAGS) -I."
@@ -24,20 +24,28 @@ endif
 #        so we can compile C++ files
 GOCMD := goxx
 
-build_cwd = \
+build_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
  CGO_CPPFLAGS=$(CGO_CFLAGS) \
  $(GOCMD) build $(GO_VERBOSE) -compiler=$(GO_COMPILER) .
 
-install_cwd = \
+install_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
  CGO_CPPFLAGS=$(CGO_CFLAGS) \
  $(GOCMD) install $(GO_VERBOSE) -compiler=$(GO_COMPILER) .
 
+test_cmd = \
+ CGO_LDFLAGS=$(CGO_LDFLAGS) \
+ CGO_CPPFLAGS=$(CGO_CFLAGS) \
+ $(GOCMD) test $(GO_VERBOSE) -compiler=$(GO_COMPILER) .
+
 all: install
 
 install:
-	@$(install_cwd)
+	@$(install_cmd)
 
 build:
-	@$(build_cwd)
+	@$(build_cmd)
+
+test:
+	@$(test_cmd)

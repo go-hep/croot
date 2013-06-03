@@ -11,20 +11,19 @@ package croot
 import "C"
 
 import (
+	"fmt"
 	"reflect"
 	"unsafe"
-	//"fmt"
-	"github.com/sbinet/go-ffi/pkg/ffi"
 )
 
 // Tree
 type Tree interface {
 	Object
 
-	Branch(name string, obj interface{}, bufsiz, splitlevel int) Branch
-	Branch2(name string, objaddr interface{}, leaflist string, bufsiz int) Branch
+	Branch(name string, obj interface{}, bufsiz, splitlevel int) (Branch, error)
+	Branch2(name string, objaddr interface{}, leaflist string, bufsiz int) (Branch, error)
 	Delete()
-	Fill() int
+	Fill() (int, error)
 	GetBranch(name string) Branch
 	GetEntries() int64
 	GetEntry(entry int64, getall int) int
@@ -82,16 +81,15 @@ func (t *tree_impl) InheritsFrom(clsname string) bool {
 }
 
 type gobranch struct {
-	g    reflect.Value  // pointer to go-value
-	c    ffi.Value      // the equivalent C-value
-	buf  uintptr        // pointer to C-value buffer
-	addr unsafe.Pointer // address of that C-value buffer
+	v    reflect.Value  // pointer to go-value
+	buf  uintptr        // pointer to go-value buffer
+	addr unsafe.Pointer // address of that go-value buffer
 	br   *branch_impl
 }
 
-func (br gobranch) update_from_go() {
-	br.c.SetValue(br.g.Elem())
-}
+// func (br gobranch) update_from_go() {
+// 	br.c.SetValue(br.g.Elem())
+// }
 
 func NewTree(name, title string, splitlevel int) Tree {
 	c_name := C.CString(name)
@@ -109,51 +107,59 @@ func (t *tree_impl) Delete() {
 	t.branches = nil
 }
 
-func (t *tree_impl) Branch(name string, obj interface{}, bufsiz, splitlevel int) Branch {
+func (t *tree_impl) Branch(name string, obj interface{}, bufsiz, splitlevel int) (Branch, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
 	ptr := reflect.ValueOf(obj)
-	val := reflect.Indirect(ptr)
-	br := gobranch{g: ptr, c: ffi.ValueOf(val.Interface())}
-	ct := br.c.Type()
-	if ct.GoType() == nil {
-		panic("no Go-type for ffi.Type [" + ct.Name() + "] !!")
+	if ptr.Type().Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("croot.Tree.Branch: takes a pointer to a struct (got %v)", ptr.Type())
 	}
+	val := reflect.Indirect(ptr)
+	if val.Type().Kind() != reflect.Struct {
+		return nil, fmt.Errorf("croot.Tree.Branch: takes a pointer to a struct (got %v)", ptr.Type())
+	}
+	br := gobranch{v: val}
 	// register the type with Reflex
-	genreflex(br.c.Type())
+	genreflex(br.v.Type())
 
 	// this scaffolding is needed b/c we need to keep the UnsafeAddr alive.
-	br.buf = br.c.UnsafeAddr()
+	br.buf = br.v.UnsafeAddr()
 	br.addr = unsafe.Pointer(&br.buf)
 	//
 
-	classname := to_cxx_name(ct.GoType())
+	classname := to_cxx_name(val.Type())
 	c_classname := C.CString(classname)
 	defer C.free(unsafe.Pointer(c_classname))
 
 	b := C.CRoot_Tree_Branch(t.c, c_name, c_classname, br.addr, C.int32_t(bufsiz), C.int32_t(splitlevel))
 	br.br = &branch_impl{c: b}
 	t.branches[name] = br
-	return br.br
+	return br.br, nil
 }
 
-func (t *tree_impl) Branch2(name string, objaddr interface{}, leaflist string, bufsiz int) Branch {
+func (t *tree_impl) Branch2(name string, objaddr interface{}, leaflist string, bufsiz int) (Branch, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
 	ptr := reflect.ValueOf(objaddr)
-	val := reflect.Indirect(ptr)
-	br := gobranch{g: ptr, c: ffi.ValueOf(val.Interface())}
-	ct := br.c.Type()
-	if ct.GoType() == nil {
-		panic("no Go-type for ffi.Type [" + ct.Name() + "] !!")
+	if ptr.Type().Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("croot.Tree.Branch: takes a pointer to a builtin (got %v)", ptr.Type())
 	}
+	val := reflect.Indirect(ptr)
+	switch k := val.Type().Kind(); k {
+	default:
+		// ok.
+	case reflect.Ptr, reflect.Struct, reflect.String, reflect.Array,
+		reflect.Slice:
+		return nil, fmt.Errorf("croot.Tree.Branch: takes a pointer to a builtin (got %v)", ptr.Type())
+	}
+	br := gobranch{v: val}
 	// register the type with Reflex
-	genreflex(br.c.Type())
+	genreflex(br.v.Type())
 
 	// this scaffolding is needed b/c we need to keep the UnsafeAddr alive.
-	br.buf = br.c.UnsafeAddr()
+	br.buf = br.v.UnsafeAddr()
 	br.addr = unsafe.Pointer(br.buf)
 	//
 
@@ -163,55 +169,30 @@ func (t *tree_impl) Branch2(name string, objaddr interface{}, leaflist string, b
 	b := C.CRoot_Tree_Branch2(t.c, c_name, br.addr, c_leaflist, C.int32_t(bufsiz))
 	br.br = &branch_impl{c: b}
 	t.branches[name] = br
-	return br.br
+	return br.br, nil
 }
 
-func (t *tree_impl) Fill() int {
-	//addrs := []uintptr{}
-	// synchronize branches: update ffi.Value
-	for n := range t.branches {
-		t.branches[n].update_from_go() //c.SetValue(t.branches[n].g.Elem())
-		// v := br.c
-		// addrs = []uintptr{v.UnsafeAddr()}
-		// switch k:=v.Type().Kind(); k {
-		// case ffi.Array:
-		// 	for i := 0; i < v.Len(); i++ {
-		// 		addrs = append(addrs, v.Index(i).UnsafeAddrs()...)
-		// 	}
-		// case ffi.Slice:
-		// 	for i := 0; i < v.Len(); i++ {
-		// 		addrs = append(addrs, v.Index(i).UnsafeAddrs()...)
-		// 	}
-		// case ffi.Struct:
-		// 	for i := 0; i < v.NumField(); i++ {
-		// 		addrs = append(addrs, v.Field(i).UnsafeAddrs()...)
-		// 	}
-		// case ffi.String:
-		// 	panic("ffi.Value.UnsafeAddrs: String not implemented")
-		// }
-
-		// if n == "evt" {
-		// 	fs := br.g.Elem().Field(1).Field(2)
-		// 	cfs := br.c.Field(1).Field(2)
-		// 	if cfs.Len() != fs.Len() {
-		// 		panic(fmt.Sprintf("err"))
-		// 	}
-		// 	if false {
-		// 	fmt.Printf("Fs:  0x%x [0x%x]\nCFs: 0x%x [0x%x]\n",
-		// 		fs.UnsafeAddr(), fs.Index(1).UnsafeAddr(),
-		// 		cfs.UnsafeAddr(), cfs.Index(1).UnsafeAddr())
-		// 	} else /*if false*/ {
-		// 		br.c.Field(1).Field(2).Index(0).UnsafeAddr()
-		// 		br.c.Field(2).Field(2).Index(0).UnsafeAddr()
-		// 	}
-		// }
-	}
-	o := int(C.CRoot_Tree_Fill(t.c))
+func (t *tree_impl) Fill() (int, error) {
+	// fmt.Printf("=== fill ===...\n")
+	// for n, v := range t.branches {
+	// 	fmt.Printf("branch[%s]: %v (%p)\n", n, v.v.Interface(),
+	// 		unsafe.Pointer(v.v.UnsafeAddr()))
+	// 	if n == "evt" {
+	// 		vv := v.v.Field(1).Field(2)
+	// 		fmt.Printf("   evt.A.Fs: %d %v (%p)\n", vv.Len(), vv.Interface(),
+	// 			unsafe.Pointer(vv.UnsafeAddr()))
+	// 	}
+	// }
+	nb := int(C.CRoot_Tree_Fill(t.c))
 	// fmt.Printf("--addrs: %d\n", len(addrs))
 	// if o > 0 {
 	// 	addrs = addrs[:0]
 	// }
-	return o
+	// fmt.Printf("=== fill ===... [done]\n")
+	if nb < 0 {
+		return nb, fmt.Errorf("croot.Tree.Fill: error")
+	}
+	return nb, nil
 }
 
 func (t *tree_impl) GetBranch(name string) Branch {
@@ -227,13 +208,13 @@ func (t *tree_impl) GetEntries() int64 {
 
 func (t *tree_impl) GetEntry(entry int64, getall int) int {
 	nbytes := C.CRoot_Tree_GetEntry(t.c, C.int64_t(entry), C.int32_t(getall))
-	if nbytes > 0 {
-		for _, br := range t.branches {
-			if br.g.IsValid() {
-				br.g.Elem().Set(br.c.GoValue())
-			}
-		}
-	}
+	// if nbytes > 0 {
+	// 	for _, br := range t.branches {
+	// 		if br.v.IsValid() {
+	// 			br.v.Elem().Set(br.c.GoValue())
+	// 		}
+	// 	}
+	// }
 	return int(nbytes)
 }
 
@@ -338,31 +319,23 @@ func (t *tree_impl) SetBranchAddress(name string, obj interface{}) int32 {
 
 	var ptr reflect.Value
 	var val reflect.Value
-	var cval ffi.Value
 
 	switch obj.(type) {
-	case ffi.Value:
-		// pass through. let ptr be non-IsValid...
-		// and set cval to obj
-		cval = obj.(ffi.Value)
-		//panic("croot.Tree.SetBranchAddress(*ffi.Value): not implemented")
+	case reflect.Value:
+		val = obj.(reflect.Value)
 	default:
 		ptr = reflect.ValueOf(obj)
 		val = reflect.Indirect(ptr)
-		cval = ffi.ValueOf(val.Interface())
 	}
 
-	br := gobranch{g: ptr, c: cval}
-	ct := br.c.Type()
-	if ct.GoType() == nil {
-		panic("no Go-type for ffi.Type [" + ct.Name() + "] !!")
-	}
+	br := gobranch{v: val}
+	typ := br.v.Type()
 	// register the type with Reflex
-	genreflex(br.c.Type())
+	genreflex(typ)
 
 	// this scaffolding is needed b/c we need to keep the UnsafeAddr alive.
-	br.buf = br.c.UnsafeAddr()
-	if ct.Kind() == ffi.Struct {
+	br.buf = br.v.UnsafeAddr()
+	if typ.Kind() == reflect.Struct {
 		br.addr = unsafe.Pointer(&br.buf)
 	} else {
 		br.addr = unsafe.Pointer(br.buf)

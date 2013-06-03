@@ -28,12 +28,28 @@ func tree0(f croot.File) {
 
 	const bufsiz = 32000
 
+	var err error
 	// create a branch with energy
-	tree.Branch2("evt_i", &e.I, "evt_i/L", bufsiz)
-	tree.Branch2("evt_a_e", &e.A.E, "evt_a_e/D", bufsiz)
-	tree.Branch2("evt_a_t", &e.A.T, "evt_a_t/D", bufsiz)
-	tree.Branch2("evt_b_e", &e.B.E, "evt_b_e/D", bufsiz)
-	tree.Branch2("evt_b_t", &e.B.T, "evt_b_t/D", bufsiz)
+	_, err = tree.Branch2("evt_i", &e.I, "evt_i/L", bufsiz)
+	if err != nil {
+		panic(err)
+	}
+	_, err = tree.Branch2("evt_a_e", &e.A.E, "evt_a_e/D", bufsiz)
+	if err != nil {
+		panic(err)
+	}
+	_, err = tree.Branch2("evt_a_t", &e.A.T, "evt_a_t/D", bufsiz)
+	if err != nil {
+		panic(err)
+	}
+	_, err = tree.Branch2("evt_b_e", &e.B.E, "evt_b_e/D", bufsiz)
+	if err != nil {
+		panic(err)
+	}
+	_, err = tree.Branch2("evt_b_t", &e.B.T, "evt_b_t/D", bufsiz)
+	if err != nil {
+		panic(err)
+	}
 
 	// fill some events with random numbers
 	nevents := *evtmax
@@ -58,7 +74,10 @@ func tree0(f croot.File) {
 			fmt.Printf("evt.b.e= %8.3f\n", e.B.E)
 			fmt.Printf("evt.b.t= %8.3f\n", e.B.T)
 		}
-		tree.Fill()
+		_, err = tree.Fill()
+		if err != nil {
+			panic(err)
+		}
 	}
 	f.Write("", 0, 0)
 }
