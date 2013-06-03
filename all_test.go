@@ -46,14 +46,16 @@ func TestTreeBuiltinsRW(t *testing.T) {
 			ref = append(ref, str)
 		}
 
-		f := croot.OpenFile(fname, "recreate", "croot event file", compress, netopt)
+		f, err := croot.OpenFile(fname, "recreate", "croot event file", compress, netopt)
+		if err != nil {
+			t.Errorf(err.Error())
+		}
 
 		// create a tree
 		tree := croot.NewTree("tree", "tree", splitlevel)
 
 		e := Event{}
 
-		var err error
 		// create a branch with energy
 		_, err = tree.Branch2("evt_i", &e.I, "evt_i/L", bufsiz)
 		if err != nil {
@@ -122,7 +124,10 @@ func TestTreeBuiltinsRW(t *testing.T) {
 			chk = append(chk, str)
 		}
 
-		f := croot.OpenFile(fname, "read", "croot event file", compress, netopt)
+		f, err := croot.OpenFile(fname, "read", "croot event file", compress, netopt)
+		if err != nil {
+			t.Errorf(err.Error())
+		}
 		tree := f.GetTree("tree")
 		if tree.GetEntries() != evtmax {
 			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
@@ -184,7 +189,10 @@ func TestTreeStructRW(t *testing.T) {
 			ref = append(ref, str)
 		}
 
-		f := croot.OpenFile(fname, "recreate", "croot event file", compress, netopt)
+		f,err := croot.OpenFile(fname, "recreate", "croot event file", compress, netopt)
+		if err != nil {
+			t.Errorf(err.Error())
+		}
 
 		// create a tree
 		tree := croot.NewTree("tree", "tree", splitlevel)
@@ -193,7 +201,7 @@ func TestTreeStructRW(t *testing.T) {
 		e.A.Fs = make([]float64, 0, 10)
 		e.B.Fs = make([]float64, 0, 2)
 
-		_, err := tree.Branch("evt", &e, bufsiz, 0)
+		_, err = tree.Branch("evt", &e, bufsiz, 0)
 		if err != nil {
 			t.Errorf(err.Error())
 		}
@@ -250,7 +258,11 @@ func TestTreeStructRW(t *testing.T) {
 			chk = append(chk, str)
 		}
 
-		f := croot.OpenFile(fname, "read", "croot event file", compress, netopt)
+		f, err := croot.OpenFile(fname, "read", "croot event file", compress, netopt)
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+
 		tree := f.GetTree("tree")
 		if tree.GetEntries() != evtmax {
 			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())

@@ -4,7 +4,7 @@
 
 ROOT_CONFIG := root-config
 ROOT_CFLAGS := $(shell $(ROOT_CONFIG) --cflags)
-ROOT_LDFLAGS := $(shell $(ROOT_CONFIG) --libs --ldflags) -lReflex -lCintex -lstdc++
+ROOT_LDFLAGS := $(shell $(ROOT_CONFIG) --libs --ldflags) -lReflex -lCintex
 
 CGO_LDFLAGS := "$(ROOT_LDFLAGS)"
 CGO_CFLAGS  := "$(ROOT_CFLAGS) -I."
@@ -17,7 +17,7 @@ endif
 
 GO_VERBOSE := $(VERBOSE)
 ifneq ($(GO_VERBOSE),)
-	GO_VERBOSE:="-v"
+	GO_VERBOSE:= -v -x
 endif
 
 # FIXME: until go-1.2 is released, we need to use 'goxx' instead of 'go'
@@ -39,7 +39,12 @@ test_cmd = \
  CGO_CPPFLAGS=$(CGO_CFLAGS) \
  $(GOCMD) test $(GO_VERBOSE) -compiler=$(GO_COMPILER) .
 
-all: install
+.PHONY: deps install
+
+all: deps install
+
+deps:
+	@go get github.com/sbinet/goxx
 
 install:
 	@$(install_cmd)
@@ -47,5 +52,5 @@ install:
 build:
 	@$(build_cmd)
 
-test:
+test: install
 	@$(test_cmd)
