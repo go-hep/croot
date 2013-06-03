@@ -59,7 +59,10 @@ func tree0(f croot.File) {
 	e := Event{}
 	const bufsiz = 32000
 
-	tree.Branch("evt", &e, bufsiz, 0)
+	_, err := tree.Branch("evt", &e, bufsiz, 0)
+	if err != nil {
+	   panic(err)
+	}
 
 	// fill some events with random numbers
 	nevents := *evtmax
@@ -82,7 +85,10 @@ func tree0(f croot.File) {
 			fmt.Printf("evt.b.e= %8.3f\n", e.B.E)
 			fmt.Printf("evt.b.t= %8.3f\n", e.B.T)
 		}
-		tree.Fill()
+		_, err = tree.Fill()
+		if err != nil {
+		   panic(err)
+        }
 	}
 	f.Write("", 0, 0)
 }
