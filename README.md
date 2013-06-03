@@ -1,34 +1,31 @@
-go-croot
-========
+croot
+=====
 
 Go bindings to the C-API of ROOT (CRoot).
 
-Installation
-------------
+## Installation
 
-    $ go get github.com/sbinet/go-croot
+Unfortunately, ``go-hep/croot`` isn't completely ``go-get`` able:
 
-
-Pre-requisites
---------------
-
-- You'll need `libffi` and `go-ffi` to be able to read/write `Go` structs from/to `ROOT` files
-
-- you'll need `croot`, the C-API to `ROOT`. here: http://github.com/sbinet/croot
+```sh
+$ go get github.com/sbinet/goxx   # until go-1.2 is released
+$ goxx get github.com/go-hep/croot
+$ cd $GOPATH/src/github.com/go-hep/croot
+$ make
+```    
 
 
-Documentation
--------------
+## Documentation
 
- http://godoc.org/github.com/sbinet/go-croot
+ http://godoc.org/github.com/go-hep/croot
 
 
 Example
 -------
 
-`go-croot` can now (correctly) write and read `go` structs which have
+`croot` can now (correctly) write and read `go` structs which have
 an equivalent `C` representation.
-*Except* for `char*` and structs embedding pointers.
+**Except** for `char*` and structs embedding pointers.
 
 A typical write program would look like:
 
@@ -40,7 +37,7 @@ import (
 	"flag"
 	"math/rand"
 
-	"github.com/sbinet/go-croot"
+	"github.com/go-hep/croot"
 )
 
 type Det struct {
@@ -56,13 +53,13 @@ type Event struct {
 var evtmax *int = flag.Int("evtmax", 10000, "number of events to generate")
 var fname *string = flag.String("fname", "event.root", "file to create")
 
-func tree0(f *croot.File) {
+func tree0(f croot.File) {
 	// create a tree
 	tree := croot.NewTree("tree", "tree", 32)
-	e := &Event{}
+	e := Event{}
 	const bufsiz = 32000
 
-	tree.Branch("evt", e, bufsiz, 0)
+	tree.Branch("evt", &e, bufsiz, 0)
 
 	// fill some events with random numbers
 	nevents := *evtmax
@@ -107,7 +104,7 @@ import (
 	"fmt"
 	"flag"
 
-	"github.com/sbinet/go-croot"
+	"github.com/go-hep/croot"
 )
 
 type Det struct {
@@ -116,7 +113,6 @@ type Det struct {
 }
 
 type Event struct {
-	I int64
 	A Det
 	B Det
 }
@@ -124,11 +120,11 @@ type Event struct {
 var evtmax *int64 = flag.Int64("evtmax", 10000, "number of events to read")
 var fname *string = flag.String("fname", "event.root", "file to read back")
 
-func tree0(f *croot.File) {
+func tree0(f croot.File) {
 	t := f.GetTree("tree")
-	e := &Event{}
+	e := Event{}
 
-	t.SetBranchAddress("evt", e)
+	t.SetBranchAddress("evt", &e)
 
 	// fill some events with random numbers
 	nevents := int64(*evtmax)
