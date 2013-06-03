@@ -1,6 +1,6 @@
 package croot
 
-// #cgo pkg-config: croot
+// #include "croot/croot.h"
 import "C"
 
 // EOF
