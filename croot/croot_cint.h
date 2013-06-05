@@ -5,8 +5,6 @@
 extern "C" {
 #endif
 
-typedef void* CRoot_Cint_TagInfo;
-
 CROOT_API
 CRoot_Cint_TagInfo
 CRoot_Cint_TagInfo_new();

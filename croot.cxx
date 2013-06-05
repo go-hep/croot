@@ -93,7 +93,7 @@ CRoot_ObjArray_GetName(CRoot_ObjArray self)
 }
 
 /* TROOT */
-CRoot_ROOT CRoot_GRoot;
+CRoot_ROOT CRoot_gROOT;
 
 CRoot_File
 CRoot_ROOT_GetFile(CRoot_ROOT self,
@@ -346,10 +346,22 @@ CRoot_Branch_GetAddress(CRoot_Branch self)
   return ((TBranch*)self)->GetAddress();
 }
 
-char*
-CRoot_Branch_GetObject(CRoot_Branch self)
+// char*
+// CRoot_Branch_GetObject(CRoot_Branch self)
+// {
+//   return ((TBranch*)self)->GetObject();
+// }
+
+CRoot_Leaf
+CRoot_Branch_GetLeaf(CRoot_Branch self, const char* name)
 {
-  return ((TBranch*)self)->GetObject();
+  return (CRoot_Leaf)((TBranch*)self)->GetLeaf(name);
+}
+
+CRoot_ObjArray
+CRoot_Branch_GetListOfLeaves(CRoot_Branch self)
+{
+  return (CRoot_ObjArray)((TBranch*)self)->GetListOfLeaves();
 }
 
 const char*
@@ -1481,6 +1493,6 @@ void __attribute__ ((constructor)) croot_init();
 
 void croot_init()
 {
-  CRoot_GRoot = (CRoot_ROOT)gROOT;
+  CRoot_gROOT = (CRoot_ROOT)gROOT;
 }
 

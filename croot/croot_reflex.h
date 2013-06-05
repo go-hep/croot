@@ -6,12 +6,6 @@ extern "C" {
 #endif
 
 /* --- Reflex API --- */
-typedef void* CRoot_Reflex_Type;
-typedef void* CRoot_Reflex_Member;
-typedef void* CRoot_Reflex_PropertyList;
-typedef void* CRoot_Reflex_Scope;
-typedef void* CRoot_Reflex_ClassBuilder;
-typedef void* CRoot_Reflex_FunctionBuilder;
 
 /**
  * typedef for function member type (necessary for return value of

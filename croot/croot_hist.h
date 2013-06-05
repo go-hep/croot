@@ -6,7 +6,6 @@ extern "C" {
 #endif
 
 /* TH1F */
-typedef void* CRoot_H1F;
 
 CROOT_API
 CRoot_H1F
