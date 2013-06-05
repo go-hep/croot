@@ -40,6 +40,10 @@ CRoot_BranchElement_GetClassName(CRoot_BranchElement self);
 /* TLeaf */
 
 CROOT_API
+CRoot_Branch
+CRoot_Leaf_GetBranch(CRoot_Leaf self);
+
+CROOT_API
 int
 CRoot_Leaf_GetLenStatic(CRoot_Leaf self);
 

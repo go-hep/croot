@@ -5,12 +5,13 @@ package croot
 import "C"
 
 import (
-"unsafe"
+	"unsafe"
 )
 
 // Leaf
 type Leaf interface {
 	Object
+	GetBranch() Branch
 	GetLenStatic() int
 	GetLeafCount() Leaf
 	GetTypeName() string
@@ -39,6 +40,14 @@ func (l *leaf_impl) Clone(opt Option) Object {
 
 func (l *leaf_impl) FindObject(name string) Object {
 	return l.as_tobject().FindObject(name)
+}
+
+func (l *leaf_impl) GetBranch() Branch {
+	c := C.CRoot_Leaf_GetBranch(l.c)
+	if c == nil {
+		return nil
+	}
+	return &branch_impl{c: c}
 }
 
 func (l *leaf_impl) GetName() string {
@@ -232,7 +241,6 @@ func (l *leaf_f_impl) GetValuePointer() uintptr {
 func (l *leaf_f_impl) as_tleaf() C.CRoot_Leaf {
 	return (C.CRoot_Leaf)(unsafe.Pointer(l.c))
 }
-
 
 // LeafD
 type LeafD interface {

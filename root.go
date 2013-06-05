@@ -28,7 +28,7 @@ func (r *ROOT) GetFile(name string) File {
 }
 
 func init() {
-	GRoot = &ROOT{C.CRoot_GRoot}
+	GRoot = &ROOT{C.CRoot_gROOT}
 }
 
 // EOF

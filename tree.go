@@ -11,7 +11,11 @@ package croot
 import "C"
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
+	"io"
+	"os"
 	"reflect"
 	"unsafe"
 )
@@ -28,8 +32,8 @@ type Tree interface {
 	GetEntries() int64
 	GetEntry(entry int64, getall int) int
 	GetLeaf(name string) Leaf
-	GetListOfBranches() ObjArray
-	GetListOfLeaves() ObjArray
+	GetListOfBranches() []Branch
+	GetListOfLeaves() []Leaf
 	GetSelectedRows() int64
 	GetVal(i int) []float64
 	GetV1() []float64
@@ -82,6 +86,7 @@ func (t *tree_impl) InheritsFrom(clsname string) bool {
 
 type gobranch struct {
 	v    reflect.Value  // pointer to go-value
+	c    unsafe.Pointer // pointer to C-backed buffer
 	buf  uintptr        // pointer to go-value buffer
 	addr unsafe.Pointer // address of that go-value buffer
 	br   *branch_impl
@@ -90,6 +95,142 @@ type gobranch struct {
 // func (br gobranch) update_from_go() {
 // 	br.c.SetValue(br.g.Elem())
 // }
+
+func decode_from_c(buf io.Reader, v reflect.Value) error {
+	return binary.Read(buf, binary.LittleEndian, v.Addr().Interface())
+
+	/*
+		var err error
+		switch v.Type().Kind() {
+		case reflect.Struct:
+			nfields := v.NumField()
+			for i := 0; i < nfields; i++ {
+				field := v.Field(i)
+				fmt.Printf("--[%s.%s] %v --\n", v.Type().Name(), v.Type().Field(i).Name, field.Type())
+				err = binary.Read(buf, binary.LittleEndian, field.Addr().Interface())
+				if err != nil {
+					return err
+				}
+			}
+		default:
+			err = binary.Read(buf, binary.LittleEndian, v.Addr().Interface())
+		}
+		return err
+	*/
+}
+
+func (br gobranch) get_c_branch(t *tree_impl, name string) unsafe.Pointer {
+	var ptr unsafe.Pointer
+
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+
+	// search for branch first.
+
+	c_br := C.CRoot_Tree_GetBranch(t.c, c_name)
+	if c_br == nil {
+		//fmt.Printf("==[%s]... sub-branch ?\n", name)
+		// sub-branch ? the actual name may have a trailing '.'
+		c_name := C.CString(name + ".")
+		defer C.free(unsafe.Pointer(c_name))
+		c_br = C.CRoot_Tree_GetBranch(t.c, c_name)
+	}
+
+	// found a branched object.
+	if c_br != nil {
+		cls_name := t.GetBranch(name).GetClassName()
+		cls := GetClass(cls_name)
+		//fmt.Printf(">>> [%v] -> class=%q %v\n", name, cls_name, cls)
+		if cls != nil {
+			//fmt.Printf("==[%s]... TBranch::GetAddress()...\n", name)
+			return unsafe.Pointer(C.CRoot_Branch_GetAddress(c_br))
+		}
+	}
+
+	// try leaf.
+	//fmt.Printf("==[%s]... TTree::GetLeaf()...\n", name)
+	c_leaf := C.CRoot_Tree_GetLeaf(t.c, c_name)
+	if c_br != nil && c_leaf == nil {
+		//fmt.Printf("==[%s]... TBranch::GetLeaf()...\n", name)
+		//fmt.Printf("==[%s] c_br=%p c_leaf=%v\n", name, c_br, c_leaf)
+		c_leaf = C.CRoot_Branch_GetLeaf(c_br, c_name)
+		if c_leaf == nil {
+			//fmt.Printf("==[%s]... TBranch::GetListOfLeaves()...\n", name)
+			c_leaves := C.CRoot_Branch_GetListOfLeaves(c_br)
+			nleaves := int(C.CRoot_ObjArray_GetSize(c_leaves))
+			//fmt.Printf("==[%s]... n-leaves=%d...\n", name, nleaves)
+			if nleaves == 1 {
+				c_leaf = (C.CRoot_Leaf)(unsafe.Pointer(C.CRoot_ObjArray_At(c_leaves, 0)))
+			} else if nleaves > 1 {
+				//fmt.Fprintf(os.Stderr, "**warn** requested branch [%s] has more than one leaf. picking the first one!\n", name)
+				c_leaf = (C.CRoot_Leaf)(unsafe.Pointer(C.CRoot_ObjArray_At(c_leaves, 0)))
+			}
+		}
+	}
+
+	// found a leaf, extract value
+	if c_leaf != nil {
+		// array types.
+		c_len_static := int(C.CRoot_Leaf_GetLenStatic(c_leaf))
+		c_leaf_count := C.CRoot_Leaf_GetLeafCount(c_leaf)
+		//fmt.Printf("==[%s]... TLeaf::GetLenStatic() = %d...\n", name, c_len_static)
+		if 1 < c_len_static || c_leaf_count != nil {
+			// c_n_data := int(C.CRoot_Leaf_GetNdata(c_leaf))
+			ptr = unsafe.Pointer(C.CRoot_Leaf_GetValuePointer(c_leaf))
+			panic("not implemented")
+			return ptr
+		}
+
+		// value types
+		ptr = unsafe.Pointer(C.CRoot_Leaf_GetValuePointer(c_leaf))
+		return ptr
+	}
+
+	fmt.Printf("==[%s] err... utter confusion!!\n", name)
+	panic("boo")
+	return ptr
+}
+
+func (br gobranch) update_from_c(t *tree_impl, name string) error {
+	if !br.v.IsValid() {
+		return fmt.Errorf("croot.update_from_c: invalid branch [%v]", name)
+	}
+
+	if br.c == nil {
+		//fmt.Printf(">>> br.c=%v (%v)\n", br.c, name)
+		br.c = br.get_c_branch(t, name)
+		//fmt.Printf(">>> br.c=%v\n", br.c)
+	}
+	if br.c == nil {
+		return fmt.Errorf(
+			"croot.update_from_c: NULL C-pointer for branch [%s]",
+			name,
+		)
+	}
+
+	c_buf := *(*[1<<16 - 1]byte)(br.c)
+	buf := bytes.NewBuffer(c_buf[:])
+	err := decode_from_c(buf, br.v)
+	if err != nil {
+		fmt.Printf("buf=%v\n", c_buf[:8])
+		vv := *(*uint32)(br.c)
+		fmt.Printf("cval=%v\n", vv)
+		fmt.Printf("val=%v\n", br.v.Interface())
+		panic(err)
+	}
+	// if name == "evt" {
+	// 	fmt.Printf("buf=%v\n", c_buf[:1024])
+	// 	fmt.Printf("val=%v\n", br.v.Interface())
+	// 	buf := bytes.NewBuffer(c_buf[:])
+	// 	err := binary.Read(buf, binary.LittleEndian, br.v.Field(0).Addr().Interface())
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	fmt.Printf("val=%v\n", br.v.Interface())
+	// }
+
+	return nil
+}
 
 func NewTree(name, title string, splitlevel int) Tree {
 	c_name := C.CString(name)
@@ -199,6 +340,9 @@ func (t *tree_impl) GetBranch(name string) Branch {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	b := C.CRoot_Tree_GetBranch(t.c, c_name)
+	if b == nil {
+		return nil
+	}
 	return &branch_impl{c: b}
 }
 
@@ -208,31 +352,50 @@ func (t *tree_impl) GetEntries() int64 {
 
 func (t *tree_impl) GetEntry(entry int64, getall int) int {
 	nbytes := C.CRoot_Tree_GetEntry(t.c, C.int64_t(entry), C.int32_t(getall))
-	// if nbytes > 0 {
-	// 	for _, br := range t.branches {
-	// 		if br.v.IsValid() {
-	// 			br.v.Elem().Set(br.c.GoValue())
-	// 		}
-	// 	}
-	// }
+	if nbytes > 0 {
+		for nn, br := range t.branches {
+			err := br.update_from_c(t, nn)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "**error: %v\n", err)
+				return -1
+			}
+		}
+	}
 	return int(nbytes)
 }
 
 func (t *tree_impl) GetLeaf(name string) Leaf {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
-	l := C.CRoot_Tree_GetLeaf(t.c, c_name)
-	return &leaf_impl{c: l}
+	c := C.CRoot_Tree_GetLeaf(t.c, c_name)
+	if c == nil {
+		return nil
+	}
+	return &leaf_impl{c: c}
 }
 
-func (t *tree_impl) GetListOfBranches() ObjArray {
-	o := C.CRoot_Tree_GetListOfBranches(t.c)
-	return &objarray_impl{c: o}
+func (t *tree_impl) GetListOfBranches() []Branch {
+	c := C.CRoot_Tree_GetListOfBranches(t.c)
+	objs := objarray_impl{c: c}
+	branches := make([]Branch, objs.GetEntries())
+	for i := 0; i < len(branches); i++ {
+		obj := objs.At(int64(i))
+		br := t.GetBranch(obj.GetName())
+		branches[i] = br
+	}
+	return branches
 }
 
-func (t *tree_impl) GetListOfLeaves() ObjArray {
-	o := C.CRoot_Tree_GetListOfLeaves(t.c)
-	return &objarray_impl{c: o}
+func (t *tree_impl) GetListOfLeaves() []Leaf {
+	c := C.CRoot_Tree_GetListOfLeaves(t.c)
+	objs := objarray_impl{c: c}
+	leaves := make([]Leaf, objs.GetEntries())
+	for i := 0; i < len(leaves); i++ {
+		obj := objs.At(int64(i))
+		leaf := t.GetLeaf(obj.GetName())
+		leaves[i] = leaf
+	}
+	return leaves
 }
 
 func (t *tree_impl) GetSelectedRows() int64 {
@@ -333,16 +496,18 @@ func (t *tree_impl) SetBranchAddress(name string, obj interface{}) int32 {
 	// register the type with Reflex
 	genreflex(typ)
 
-	// this scaffolding is needed b/c we need to keep the UnsafeAddr alive.
-	br.buf = br.v.UnsafeAddr()
-	if typ.Kind() == reflect.Struct {
-		br.addr = unsafe.Pointer(&br.buf)
-	} else {
-		br.addr = unsafe.Pointer(br.buf)
-	}
+	br.c = nil
+	br.addr = unsafe.Pointer(&br.c)
 	//
 
+	// fmt.Printf("br.buf:  0x%x\n", br.buf)
+	// fmt.Printf("br.addr: %v\n", unsafe.Pointer(&br.buf))
+	// fmt.Printf("br.addr: %v\n", unsafe.Pointer(br.buf))
+	// fmt.Printf("br.addr: %v\n", br.addr)
 	rc := C.CRoot_Tree_SetBranchAddress(t.c, c_name, br.addr, nil)
+
+	//c_br := C.CRoot_Tree_GetBranch(t.c, c_name)
+	//br.c = unsafe.Pointer(C.CRoot_Branch_GetAddress(c_br))
 
 	t.branches[name] = br
 	return int32(rc)

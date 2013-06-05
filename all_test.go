@@ -11,9 +11,9 @@ import (
 )
 
 type Det struct {
-	E  float64
-	T  float64
-	Fs []float64 //FIXME: not yet...
+	E float64
+	T float64
+	//Fs []float64 //FIXME: not yet...
 }
 
 type Event struct {
@@ -126,11 +126,11 @@ func TestTreeBuiltinsRW(t *testing.T) {
 
 		f, err := croot.OpenFile(fname, "read", "croot event file", compress, netopt)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Fatalf(err.Error())
 		}
 		tree := f.GetTree("tree")
 		if tree.GetEntries() != evtmax {
-			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
+			t.Fatalf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
 		}
 
 		e := Event{}
@@ -158,7 +158,7 @@ func TestTreeBuiltinsRW(t *testing.T) {
 			}
 
 			if iev != e.I {
-				t.Errorf("invalid event number. expected %v, got %v", iev, e.I)
+				t.Fatalf("invalid event number. expected %v, got %v", iev, e.I)
 			}
 		}
 		f.Close("")
@@ -189,21 +189,21 @@ func TestTreeStructRW(t *testing.T) {
 			ref = append(ref, str)
 		}
 
-		f,err := croot.OpenFile(fname, "recreate", "croot event file", compress, netopt)
+		f, err := croot.OpenFile(fname, "recreate", "croot event file", compress, netopt)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Fatalf(err.Error())
 		}
 
 		// create a tree
 		tree := croot.NewTree("tree", "tree", splitlevel)
 
 		e := Event{}
-		e.A.Fs = make([]float64, 0, 10)
-		e.B.Fs = make([]float64, 0, 2)
+		//e.A.Fs = make([]float64, 0, 10)
+		//e.B.Fs = make([]float64, 0, 2)
 
 		_, err = tree.Branch("evt", &e, bufsiz, 0)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Fatalf(err.Error())
 		}
 
 		// initialize our source of random numbers...
@@ -223,18 +223,18 @@ func TestTreeStructRW(t *testing.T) {
 			e.A.T = src.Float64()
 			e.B.T = e.A.T * (src.NormFloat64()*1. + 0.)
 
-			e.A.Fs = e.A.Fs[:0]
-			e.B.Fs = e.B.Fs[:0]
+			// e.A.Fs = e.A.Fs[:0]
+			// e.B.Fs = e.B.Fs[:0]
 
-			e.A.Fs = append(e.A.Fs, e.A.E, e.A.T)
-			e.B.Fs = append(e.B.Fs, e.B.E, e.B.T)
+			// e.A.Fs = append(e.A.Fs, e.A.E, e.A.T)
+			// e.B.Fs = append(e.B.Fs, e.B.E, e.B.T)
 
-			if len(e.A.Fs) != 2 {
-				t.Errorf("invalid e.A.Fs size: %v (expected 2)", len(e.A.Fs))
-			}
-			if len(e.B.Fs) != 2 {
-				t.Errorf("invalid e.B.Fs size: %v (expected 2)", len(e.B.Fs))
-			}
+			// if len(e.A.Fs) != 2 {
+			// 	t.Errorf("invalid e.A.Fs size: %v (expected 2)", len(e.A.Fs))
+			// }
+			// if len(e.B.Fs) != 2 {
+			// 	t.Errorf("invalid e.B.Fs size: %v (expected 2)", len(e.B.Fs))
+			// }
 			if iev%1000 == 0 {
 				add(fmt.Sprintf("evt.i=   %8d\n", e.I))
 				add(fmt.Sprintf("evt.a.e= %8.3f\n", e.A.E))
@@ -268,9 +268,9 @@ func TestTreeStructRW(t *testing.T) {
 			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
 		}
 
-		e := Event{}
-		// e.A.Fs = make([]float64, 0, 2)
-		// e.B.Fs = make([]float64, 0, 2)
+		var e Event
+		//e.A.Fs = make([]float64, 0, 2)
+		//e.B.Fs = make([]float64, 0, 2)
 		tree.SetBranchAddress("evt", &e)
 
 		// read events
@@ -289,30 +289,30 @@ func TestTreeStructRW(t *testing.T) {
 				add(fmt.Sprintf("evt.b.t= %8.3f\n", e.B.T))
 			}
 
-			if len(e.A.Fs) != 2 {
-				t.Errorf("invalid e.A.Fs size: %v (expected 2)", len(e.A.Fs))
-			}
-			if e.A.Fs[0] != e.A.E {
-				t.Errorf("invalid e.A.Fs[0] value: %v (expected %v)",
-					e.A.Fs[0], e.A.E)
-			}
-			if e.A.Fs[1] != e.A.T {
-				t.Errorf("invalid e.A.Fs[0] value: %v (expected %v)",
-					e.A.Fs[1], e.A.T)
-			}
-			if len(e.B.Fs) != 2 {
-				t.Errorf("invalid e.B.Fs size: %v (expected 2)", len(e.B.Fs))
-			}
-			if e.B.Fs[0] != e.B.E {
-				t.Errorf("invalid e.B.Fs[0] value: %v (expected %v)",
-					e.B.Fs[0], e.B.E)
-			}
-			if e.B.Fs[1] != e.B.T {
-				t.Errorf("invalid e.B.Fs[0] value: %v (expected %v)",
-					e.B.Fs[1], e.B.T)
-			}
+			// if len(e.A.Fs) != 2 {
+			// 	t.Errorf("invalid e.A.Fs size: %v (expected 2)", len(e.A.Fs))
+			// }
+			// if e.A.Fs[0] != e.A.E {
+			// 	t.Errorf("invalid e.A.Fs[0] value: %v (expected %v)",
+			// 		e.A.Fs[0], e.A.E)
+			// }
+			// if e.A.Fs[1] != e.A.T {
+			// 	t.Errorf("invalid e.A.Fs[0] value: %v (expected %v)",
+			// 		e.A.Fs[1], e.A.T)
+			// }
+			// if len(e.B.Fs) != 2 {
+			// 	t.Errorf("invalid e.B.Fs size: %v (expected 2)", len(e.B.Fs))
+			// }
+			// if e.B.Fs[0] != e.B.E {
+			// 	t.Errorf("invalid e.B.Fs[0] value: %v (expected %v)",
+			// 		e.B.Fs[0], e.B.E)
+			// }
+			// if e.B.Fs[1] != e.B.T {
+			// 	t.Errorf("invalid e.B.Fs[0] value: %v (expected %v)",
+			// 		e.B.Fs[1], e.B.T)
+			// }
 			if iev != e.I {
-				t.Errorf("invalid event number. expected %v, got %v", iev, e.I)
+				t.Fatalf("invalid event number. expected %v, got %v", iev, e.I)
 			}
 		}
 		f.Close("")

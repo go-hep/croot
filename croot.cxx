@@ -371,6 +371,12 @@ CRoot_Branch_GetClassName(CRoot_Branch self)
 }
 
 /* TLeaf */
+CRoot_Branch
+CRoot_Leaf_GetBranch(CRoot_Leaf self)
+{
+  return (CRoot_Branch)(((TLeaf*)self)->GetBranch());
+}
+
 int
 CRoot_Leaf_GetLenStatic(CRoot_Leaf self)
 {
