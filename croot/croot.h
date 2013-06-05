@@ -95,6 +95,10 @@ char*
 CRoot_Branch_GetAddress(CRoot_Branch self);
 
 CROOT_API
+char*
+CRoot_Branch_GetObject(CRoot_Branch self);
+
+CROOT_API
 const char*
 CRoot_Branch_GetClassName(CRoot_Branch self);
 

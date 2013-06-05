@@ -346,6 +346,12 @@ CRoot_Branch_GetAddress(CRoot_Branch self)
   return ((TBranch*)self)->GetAddress();
 }
 
+char*
+CRoot_Branch_GetObject(CRoot_Branch self)
+{
+  return ((TBranch*)self)->GetObject();
+}
+
 const char*
 CRoot_Branch_GetClassName(CRoot_Branch self)
 {
