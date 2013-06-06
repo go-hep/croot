@@ -12,48 +12,57 @@ import (
 
 {{range .Defs}}
 type {{.Name}} struct {
-{{range .Fields}} {{.Name}} {{.Type}}
+{{range .Fields}}	{{.Name}} {{.Type}}
 {{end}}}
 {{end}}
 
-{{with .Event}}
-type Event struct {
-{{range .Fields}} {{.Name}} {{.Type}}
+{{with .DataReader}}
+type DataReader struct {
+{{range .Fields}}	{{.Name}} {{.Type}}
 {{end}}
 
  // branches
-{{range .Fields}} b_{{.Name}} croot.Branch
+{{range .Fields}}	b_{{.Name}} croot.Branch
 {{end}}
 
- Tree croot.Tree
+	Tree croot.Tree
 }
 
-func (e *Event) Init(tree croot.Tree) error {
- var err error
- var o int32
- e.Tree = tree
+func NewDataReader(tree croot.Tree) (*DataReader, error) {
+	dr := &DataReader{}
+	err := dr.Init(tree)
+	if err != nil {
+		return nil, err
+	}
+	return dr, nil
+}
+
+func (dr *DataReader) Init(tree croot.Tree) error {
+	var err error
+	var o int32
+	dr.Tree = tree
 {{range .Fields}}
- o = e.Tree.SetBranchAddress("{{.BranchName}}", &e.{{.Name}})
- if o < 0 {
-   return fmt.Errorf("invalid branch: [{{.BranchName}}] (got %d)", o)
- }
+	o = dr.Tree.SetBranchAddress("{{.BranchName}}", &dr.{{.Name}})
+	if o < 0 {
+		return fmt.Errorf("invalid branch: [{{.BranchName}}] (got %d)", o)
+	}
 {{end}}
- return err
+	return err
 }
 
-func (e *Event) GetEntry(entry int64) int {
- if e.Tree == nil {
-   return 0
- }
- return e.Tree.GetEntry(entry, 1)
+func (dr *DataReader) GetEntry(entry int64) int {
+	if dr.Tree == nil {
+		return 0
+	}
+	return dr.Tree.GetEntry(entry, 1)
 }
 {{end}}
 
 
 func init() {
-  // register all generated types with CRoot
-  {{range .Defs}}croot.RegisterType(&{{.Name}}{})
-  {{end}}
+	// register all generated types with CRoot
+{{range .Defs}}	croot.RegisterType(&{{.Name}}{})
+{{end}}
 }
 `
 

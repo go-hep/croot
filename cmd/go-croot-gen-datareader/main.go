@@ -31,9 +31,9 @@ type FieldDef struct {
 }
 
 type Context struct {
-	Package string
-	Event   *StructDef
-	Defs    map[string]*StructDef
+	Package    string
+	DataReader *StructDef
+	Defs       map[string]*StructDef
 }
 
 var to_go_name = strings.Title
@@ -92,14 +92,14 @@ func main() {
 	ctx := Context{
 		Package: *pname,
 		Defs: map[string]*StructDef{
-			"Event": &StructDef{
-				Name:   "Event",
+			"DataReader": &StructDef{
+				Name:   "DataReader",
 				Fields: nil,
 			},
 		},
 	}
 
-	f, err := croot.OpenFile(*fname, "read", "go-croot-reader", 1, 0)
+	f, err := croot.OpenFile(*fname, "read", "go-croot-gen-datareader", 1, 0)
 	if err != nil {
 		fmt.Printf("**error** %v\n", err)
 		os.Exit(1)
@@ -153,8 +153,8 @@ func main() {
 
 		}
 		defs[n] = &br_struct
-		defs["Event"].Fields = append(
-			defs["Event"].Fields,
+		defs["DataReader"].Fields = append(
+			defs["DataReader"].Fields,
 			FieldDef{
 				Name:       go_name,
 				BranchName: n,
@@ -166,8 +166,8 @@ func main() {
 
 	fmt.Printf("ntvars: %v\n", defs["NTVars"])
 
-	ctx.Event = defs["Event"]
-	delete(defs, "Event")
+	ctx.DataReader = defs["DataReader"]
+	delete(defs, "DataReader")
 
 	err = gen_code(o, ctx)
 	os.Exit(0)
