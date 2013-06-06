@@ -12,7 +12,12 @@ GOARCH := $(shell go env GOARCH)
 INSTALL_DIR := $(firstword $(subst :, ,$(shell go env GOPATH)))/pkg/$(GOOS)_$(GOARCH)
 INSTALL_LIBDIR := $(INSTALL_DIR)/lib
 
+ifeq ($(GOOS),linux)
 CGO_LDFLAGS := "-Wl,-rpath,$(INSTALL_LIBDIR) -L$(INSTALL_LIBDIR) -lcxx-croot"
+endif
+ifeq ($(GOOS),darwin)
+CGO_LDFLAGS := "-L$(INSTALL_LIBDIR) -lcxx-croot"
+endif
 CGO_CFLAGS  := "-Ibindings/inc -I."
 
 CXX_CROOT_CXXFLAGS := $(ROOT_CFLAGS) -fPIC -Ibindings/inc -I.
@@ -35,12 +40,12 @@ GOCMD := go
 
 build_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
- CGO_CPPFLAGS=$(CGO_CFLAGS) \
+ CGO_CFLAGS=$(CGO_CFLAGS) \
  $(GOCMD) build $(GO_VERBOSE) -compiler=$(GO_COMPILER)
 
 install_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
- CGO_CPPFLAGS=$(CGO_CFLAGS) \
+ CGO_CFLAGS=$(CGO_CFLAGS) \
  $(GOCMD) install $(GO_VERBOSE) -compiler=$(GO_COMPILER)
 
 test_cmd = \
@@ -69,6 +74,8 @@ dirs:
 	$(CXX) $(CXX_CROOT_CXXFLAGS) -o $@ -c $<
 
 install: deps cxx-lib
+	@echo "GOOS: $(GOOS)"
+	@echo "CGO_LDFLAGS: $(CGO_LDFLAGS)"
 	@$(install_cmd) .
 	@$(install_cmd) ./cmd/...
 
