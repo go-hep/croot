@@ -107,13 +107,29 @@ func decode_from_c(buf io.Reader, v reflect.Value) error {
 			for i := 0; i < nfields; i++ {
 				field := v.Field(i)
 				fmt.Printf("--[%s.%s] %v --\n", v.Type().Name(), v.Type().Field(i).Name, field.Type())
-				err = binary.Read(buf, binary.LittleEndian, field.Addr().Interface())
+				err = decode_from_c(buf, field)
+				fmt.Printf("--[%s.%s] %v -- [done]\n", v.Type().Name(), v.Type().Field(i).Name, field.Type())
 				if err != nil {
 					return err
 				}
 			}
+		case reflect.Slice:
+			goslice := &struct {
+				Data uint64 // ouch
+				Len  int64
+				Cap  int64
+			}{0, -1, -1}
+			vv := reflect.ValueOf(goslice).Elem()
+			err = decode_from_c(buf, vv)
+			if err != nil {
+				panic(err)
+				return err
+			}
+			fmt.Printf(">>> slice: %v\n", goslice)
 		default:
+			fmt.Printf("--[%s] %v -->\n", v.Type().Name(), v.Type())
 			err = binary.Read(buf, binary.LittleEndian, v.Addr().Interface())
+			fmt.Printf("--[%s] %v --> [done]\n", v.Type().Name(), v.Type())
 		}
 		return err
 	*/
@@ -212,11 +228,11 @@ func (br gobranch) update_from_c(t *tree_impl, name string) error {
 	buf := bytes.NewBuffer(c_buf[:])
 	err := decode_from_c(buf, br.v)
 	if err != nil {
-		fmt.Printf("buf=%v\n", c_buf[:8])
-		vv := *(*uint32)(br.c)
-		fmt.Printf("cval=%v\n", vv)
-		fmt.Printf("val=%v\n", br.v.Interface())
-		panic(err)
+		// fmt.Printf("buf=%v\n", c_buf[:8])
+		// vv := *(*uint32)(br.c)
+		// fmt.Printf("cval=%v\n", vv)
+		// fmt.Printf("val=%v\n", br.v.Interface())
+		return err
 	}
 	// if name == "evt" {
 	// 	fmt.Printf("buf=%v\n", c_buf[:1024])

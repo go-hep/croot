@@ -198,8 +198,8 @@ func TestTreeStructRW(t *testing.T) {
 		tree := croot.NewTree("tree", "tree", splitlevel)
 
 		e := Event{}
-		//e.A.Fs = make([]float64, 0, 10)
-		//e.B.Fs = make([]float64, 0, 2)
+		// e.A.Fs = make([]float64, 0, 10)
+		// e.B.Fs = make([]float64, 0, 2)
 
 		_, err = tree.Branch("evt", &e, bufsiz, 0)
 		if err != nil {
@@ -269,8 +269,8 @@ func TestTreeStructRW(t *testing.T) {
 		}
 
 		var e Event
-		//e.A.Fs = make([]float64, 0, 2)
-		//e.B.Fs = make([]float64, 0, 2)
+		// e.A.Fs = make([]float64, 0, 2)
+		// e.B.Fs = make([]float64, 0, 2)
 		tree.SetBranchAddress("evt", &e)
 
 		// read events
