@@ -9,9 +9,12 @@ Unfortunately, ``go-hep/croot`` isn't completely ``go-get`` able:
 
 ```sh
 $ go get github.com/sbinet/goxx   # until go-1.2 is released
-$ goxx get github.com/go-hep/croot
+$ git clone \
+  git://github.com/go-hep/croot \
+  $GOPATH/src/github.com/go-hep/croot
 $ cd $GOPATH/src/github.com/go-hep/croot
-$ make
+$ make install
+$ make test
 ```    
 
 
@@ -20,8 +23,7 @@ $ make
  http://godoc.org/github.com/go-hep/croot
 
 
-Example
--------
+## Example
 
 `croot` can now (correctly) write and read `go` structs which have
 an equivalent `C` representation.
