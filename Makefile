@@ -34,8 +34,6 @@ ifneq ($(GO_VERBOSE),)
 	GO_VERBOSE:= -v -x
 endif
 
-# FIXME: until go-1.2 is released, we need to use 'goxx' instead of 'go'
-#        so we can compile C++ files
 GOCMD := go
 
 build_cmd = \
@@ -50,7 +48,7 @@ install_cmd = \
 
 test_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
- CGO_CPPFLAGS=$(CGO_CFLAGS) \
+ CGO_CFLAGS=$(CGO_CFLAGS) \
  $(GOCMD) test $(GO_VERBOSE) -compiler=$(GO_COMPILER)
 
 cxx_croot_sources := \
@@ -60,22 +58,17 @@ cxx_croot_sources := \
 
 cxx_croot_objects := $(subst .cxx,.o,$(cxx_croot_sources))
 
-.PHONY: deps install dirs clean
+.PHONY: install dirs clean
 
-all: deps install
-
-deps:
-	@go get github.com/sbinet/goxx
+all: install
 
 dirs:
 	@mkdir -p $(INSTALL_LIBDIR)
 
 %.o: %.cxx
-	$(CXX) $(CXX_CROOT_CXXFLAGS) -o $@ -c $<
+	@$(CXX) $(CXX_CROOT_CXXFLAGS) -o $@ -c $<
 
-install: deps cxx-lib
-	@echo "GOOS: $(GOOS)"
-	@echo "CGO_LDFLAGS: $(CGO_LDFLAGS)"
+install: cxx-lib
 	@$(install_cmd) .
 	@$(install_cmd) ./cmd/...
 
