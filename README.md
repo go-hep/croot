@@ -8,13 +8,13 @@ Go bindings to the C-API of ROOT (CRoot).
 Unfortunately, ``go-hep/croot`` isn't completely ``go-get`` able:
 
 ```sh
-$ go get github.com/sbinet/goxx   # until go-1.2 is released
 $ git clone \
   git://github.com/go-hep/croot \
   $GOPATH/src/github.com/go-hep/croot
 $ cd $GOPATH/src/github.com/go-hep/croot
 $ make install
 $ make test
+ok  	github.com/go-hep/croot	2.862s
 ```    
 
 
