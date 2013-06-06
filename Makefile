@@ -7,7 +7,7 @@ ROOT_CFLAGS := $(shell $(ROOT_CONFIG) --cflags)
 ROOT_LDFLAGS := $(shell $(ROOT_CONFIG) --libs --ldflags) -lReflex -lCintex
 
 CGO_LDFLAGS := "$(ROOT_LDFLAGS)"
-CGO_CFLAGS  := "$(ROOT_CFLAGS) -I."
+CGO_CFLAGS  := "$(ROOT_CFLAGS) -Ibindings/inc -I."
 
 # default to gc, but allow caller to override on command line
 GO_COMPILER:=$(GC)
@@ -46,11 +46,11 @@ all: deps install
 deps:
 	@go get github.com/sbinet/goxx
 
-install:
+install: deps
 	@$(install_cmd) .
 	@$(install_cmd) ./cmd/...
 
-build:
+build: deps
 	@$(build_cmd) .
 	@$(build_cmd) ./cmd/...
 
