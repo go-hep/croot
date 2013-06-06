@@ -1,7 +1,7 @@
 package croot
 
 // #include "croot/croot.h"
-// #cgo LDFLAGS: -lstdc++
+// #cgo CFLAGS: -Ibindings/inc
 import "C"
 
 // EOF
