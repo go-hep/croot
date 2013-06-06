@@ -6,8 +6,17 @@ ROOT_CONFIG := root-config
 ROOT_CFLAGS := $(shell $(ROOT_CONFIG) --cflags)
 ROOT_LDFLAGS := $(shell $(ROOT_CONFIG) --libs --ldflags) -lReflex -lCintex
 
-CGO_LDFLAGS := "$(ROOT_LDFLAGS)"
-CGO_CFLAGS  := "$(ROOT_CFLAGS) -Ibindings/inc -I."
+GOOS := $(shell go env GOOS)
+GOARCH := $(shell go env GOARCH)
+
+INSTALL_DIR := $(firstword $(subst :, ,$(shell go env GOPATH)))/pkg/$(GOOS)_$(GOARCH)
+INSTALL_LIBDIR := $(INSTALL_DIR)/lib
+
+CGO_LDFLAGS := "-Wl,-rpath,$(INSTALL_LIBDIR) -L$(INSTALL_LIBDIR) -lcxx-croot"
+CGO_CFLAGS  := "-Ibindings/inc -I."
+
+CXX_CROOT_CXXFLAGS := $(ROOT_CFLAGS) -fPIC -Ibindings/inc -I.
+CXX_CROOT_LDFLAGS := $(ROOT_LDFLAGS)
 
 # default to gc, but allow caller to override on command line
 GO_COMPILER:=$(GC)
@@ -22,7 +31,7 @@ endif
 
 # FIXME: until go-1.2 is released, we need to use 'goxx' instead of 'go'
 #        so we can compile C++ files
-GOCMD := goxx
+GOCMD := go
 
 build_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
@@ -39,20 +48,40 @@ test_cmd = \
  CGO_CPPFLAGS=$(CGO_CFLAGS) \
  $(GOCMD) test $(GO_VERBOSE) -compiler=$(GO_COMPILER)
 
-.PHONY: deps install
+cxx_croot_sources := \
+ bindings/src/croot.cxx \
+ bindings/src/croot_class.cxx \
+ bindings/src/croot_hist.cxx 
+
+cxx_croot_objects := $(subst .cxx,.o,$(cxx_croot_sources))
+
+.PHONY: deps install dirs clean
 
 all: deps install
 
 deps:
 	@go get github.com/sbinet/goxx
 
-install: deps
+dirs:
+	@mkdir -p $(INSTALL_LIBDIR)
+
+%.o: %.cxx
+	$(CXX) $(CXX_CROOT_CXXFLAGS) -o $@ -c $<
+
+install: deps cxx-lib
 	@$(install_cmd) .
 	@$(install_cmd) ./cmd/...
 
-build: deps
-	@$(build_cmd) .
-	@$(build_cmd) ./cmd/...
+cxx-lib: dirs $(cxx_croot_objects)
+	@$(CXX) -shared \
+	 -o $(INSTALL_LIBDIR)/libcxx-croot.so \
+	 $(CXX_CROOT_CXXFLAGS) $(CXX_CROOT_LDFLAGS) \
+	 $(cxx_croot_objects)
 
 test: install
 	@$(test_cmd) .
+
+clean:
+	@rm -f $(cxx_croot_objects)
+	@rm -f $(INSTALL_LIBDIR)/libcxx-croot.so
+	@rm -f $(INSTALL_DIR)/github.com/go-hep/croot.a
