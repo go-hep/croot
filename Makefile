@@ -10,7 +10,7 @@ GOOS := $(shell go env GOOS)
 GOARCH := $(shell go env GOARCH)
 
 INSTALL_DIR := $(firstword $(subst :, ,$(shell go env GOPATH)))/pkg/$(GOOS)_$(GOARCH)
-INSTALL_LIBDIR := $(INSTALL_DIR)/lib
+INSTALL_LIBDIR := $(INSTALL_DIR)/github.com/go-hep/croot/_lib
 
 ifeq ($(GOOS),linux)
 CGO_LDFLAGS := "-Wl,-rpath,$(INSTALL_LIBDIR) -L$(INSTALL_LIBDIR) -lcxx-croot"
