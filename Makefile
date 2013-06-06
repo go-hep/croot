@@ -27,17 +27,17 @@ GOCMD := goxx
 build_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
  CGO_CPPFLAGS=$(CGO_CFLAGS) \
- $(GOCMD) build $(GO_VERBOSE) -compiler=$(GO_COMPILER) .
+ $(GOCMD) build $(GO_VERBOSE) -compiler=$(GO_COMPILER)
 
 install_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
  CGO_CPPFLAGS=$(CGO_CFLAGS) \
- $(GOCMD) install $(GO_VERBOSE) -compiler=$(GO_COMPILER) .
+ $(GOCMD) install $(GO_VERBOSE) -compiler=$(GO_COMPILER)
 
 test_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
  CGO_CPPFLAGS=$(CGO_CFLAGS) \
- $(GOCMD) test $(GO_VERBOSE) -compiler=$(GO_COMPILER) .
+ $(GOCMD) test $(GO_VERBOSE) -compiler=$(GO_COMPILER)
 
 .PHONY: deps install
 
@@ -47,10 +47,12 @@ deps:
 	@go get github.com/sbinet/goxx
 
 install:
-	@$(install_cmd)
+	@$(install_cmd) .
+	@$(install_cmd) ./cmd/...
 
 build:
-	@$(build_cmd)
+	@$(build_cmd) .
+	@$(build_cmd) ./cmd/...
 
 test: install
-	@$(test_cmd)
+	@$(test_cmd) .
