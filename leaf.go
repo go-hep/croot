@@ -319,6 +319,83 @@ func (l *leaf_d_impl) as_tleaf() C.CRoot_Leaf {
 	return (C.CRoot_Leaf)(unsafe.Pointer(l.c))
 }
 
+// LeafO
+type LeafO interface {
+	Leaf
+	GetValue(idx int) float64
+}
+
+type leaf_o_impl struct {
+	c C.CRoot_LeafO
+}
+
+func (l *leaf_o_impl) GetValue(idx int) float64 {
+	o := C.CRoot_LeafO_GetValue(l.c, C.int(idx))
+	return float64(o)
+}
+
+func (l *leaf_o_impl) cptr() C.CRoot_Object {
+	return (C.CRoot_Object)(l.c)
+}
+
+func (l *leaf_o_impl) as_tobject() *object_impl {
+	return &object_impl{l.cptr()}
+}
+
+func (l *leaf_o_impl) ClassName() string {
+	return l.as_tobject().ClassName()
+}
+
+func (l *leaf_o_impl) Clone(opt Option) Object {
+	return l.as_tobject().Clone(opt)
+}
+
+func (l *leaf_o_impl) FindObject(name string) Object {
+	return l.as_tobject().FindObject(name)
+}
+
+func (l *leaf_o_impl) GetName() string {
+	return l.as_tobject().GetName()
+}
+
+func (l *leaf_o_impl) GetTitle() string {
+	return l.as_tobject().GetTitle()
+}
+
+func (l *leaf_o_impl) InheritsFrom(clsname string) bool {
+	return l.as_tobject().InheritsFrom(clsname)
+}
+
+func (l *leaf_o_impl) Print(option Option) {
+	l.as_tobject().Print(option)
+}
+
+func (l *leaf_o_impl) GetLenStatic() int {
+	return int(C.CRoot_Leaf_GetLenStatic(l.as_tleaf()))
+}
+
+func (l *leaf_o_impl) GetLeafCount() Leaf {
+	c := C.CRoot_Leaf_GetLeafCount(l.as_tleaf())
+	obj := object_impl{c: (C.CRoot_Object)(c)}
+	return to_gocroot(&obj).(Leaf)
+}
+
+func (l *leaf_o_impl) GetTypeName() string {
+	c_str := C.CRoot_Leaf_GetTypeName(l.as_tleaf())
+	// we do NOT own c_str
+	// defer C.free(unsafe.Point(c_str))
+	return C.GoString(c_str)
+}
+
+func (l *leaf_o_impl) GetValuePointer() uintptr {
+	ptr := C.CRoot_Leaf_GetValuePointer(l.as_tleaf())
+	return uintptr(ptr)
+}
+
+func (l *leaf_o_impl) as_tleaf() C.CRoot_Leaf {
+	return (C.CRoot_Leaf)(unsafe.Pointer(l.c))
+}
+
 func init() {
 	cnvmap["TLeaf"] = func(o c_object) Object {
 		return &leaf_impl{c: (C.CRoot_Leaf)(o.cptr())}
@@ -331,6 +408,9 @@ func init() {
 	}
 	cnvmap["TLeafD"] = func(o c_object) Object {
 		return &leaf_d_impl{c: (C.CRoot_LeafD)(o.cptr())}
+	}
+	cnvmap["TLeafO"] = func(o c_object) Object {
+		return &leaf_o_impl{c: (C.CRoot_LeafO)(o.cptr())}
 	}
 }
 

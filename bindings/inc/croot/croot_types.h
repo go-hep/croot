@@ -15,6 +15,7 @@ extern "C" {
   typedef void *CRoot_LeafD; /* TLeafD */
   typedef void *CRoot_LeafF; /* TLeafF */
   typedef void *CRoot_LeafI; /* TLeafI */
+  typedef void *CRoot_LeafO; /* TLeafO */
   typedef void *CRoot_ObjArray; /* TObjArray */
   typedef void *CRoot_Object; /* TObject */
   typedef void *CRoot_ROOT;  /*TROOT*/

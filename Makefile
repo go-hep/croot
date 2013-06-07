@@ -54,6 +54,7 @@ test_cmd = \
 cxx_croot_sources := \
  bindings/src/croot.cxx \
  bindings/src/croot_class.cxx \
+ bindings/src/croot_leaf.cxx \
  bindings/src/croot_hist.cxx 
 
 cxx_croot_objects := $(subst .cxx,.o,$(cxx_croot_sources))

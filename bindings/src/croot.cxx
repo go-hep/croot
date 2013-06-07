@@ -2,10 +2,6 @@
 
 #include "TBranch.h"
 #include "TBranchElement.h"
-#include "TLeaf.h"
-#include "TLeafI.h"
-#include "TLeafF.h"
-#include "TLeafD.h"
 #include "TTree.h"
 #include "TChain.h"
 
@@ -369,59 +365,6 @@ CRoot_Branch_GetClassName(CRoot_Branch self)
 {
   return ((TBranch*)self)->GetClassName();
 }
-
-/* TLeaf */
-CRoot_Branch
-CRoot_Leaf_GetBranch(CRoot_Leaf self)
-{
-  return (CRoot_Branch)(((TLeaf*)self)->GetBranch());
-}
-
-int
-CRoot_Leaf_GetLenStatic(CRoot_Leaf self)
-{
-  return ((TLeaf*)self)->GetLenStatic();
-}
-
-CRoot_Leaf
-CRoot_Leaf_GetLeafCount(CRoot_Leaf self)
-{
-  return (CRoot_Leaf)(((TLeaf*)self)->GetLeafCount());
-}
-
-const char*
-CRoot_Leaf_GetTypeName(CRoot_Leaf self)
-{
-  return ((TLeaf*)self)->GetTypeName();
-}
-
-void*
-CRoot_Leaf_GetValuePointer(CRoot_Leaf self)
-{
-  return ((TLeaf*)self)->GetValuePointer();
-}
-
-/* TLeafI */
-double
-CRoot_LeafI_GetValue(CRoot_LeafI self, int idx)
-{
-  return ((TLeafI*)self)->GetValue(idx);
-}
-
-/* TLeafF */
-double
-CRoot_LeafF_GetValue(CRoot_LeafF self, int idx)
-{
-  return ((TLeafF*)self)->GetValue(idx);  
-}
-
-/* TLeafD */
-double
-CRoot_LeafD_GetValue(CRoot_LeafD self, int idx)
-{
-  return ((TLeafD*)self)->GetValue(idx);    
-}
-
 
 /* TBranchElement */
 char*
