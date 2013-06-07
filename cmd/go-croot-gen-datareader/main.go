@@ -125,7 +125,7 @@ func main() {
 		fmt.Printf(":: branch[%3d]=%s (=> %s)\n", i, n, go_name)
 		leaves := branch.GetListOfLeaves()
 		fmt.Printf(":: leaves: %v\n", len(leaves))
-		br_struct := StructDef{Name: n, Fields: nil}
+		br_struct := StructDef{Name: go_name, Fields: nil}
 		for j, leaf := range leaves {
 			fmt.Printf(
 				"  br[%d]: %s_%v\n",
