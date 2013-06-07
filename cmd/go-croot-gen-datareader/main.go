@@ -164,8 +164,6 @@ func main() {
 		)
 	}
 
-	fmt.Printf("ntvars: %v\n", defs["NTVars"])
-
 	ctx.DataReader = defs["DataReader"]
 	delete(defs, "DataReader")
 
