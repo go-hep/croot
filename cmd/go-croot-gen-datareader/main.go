@@ -152,16 +152,24 @@ func main() {
 			br_struct.Fields = append(br_struct.Fields, br_field)
 
 		}
-		defs[n] = &br_struct
-		defs["DataReader"].Fields = append(
-			defs["DataReader"].Fields,
-			FieldDef{
-				Name:       go_name,
-				BranchName: n,
-				VarName:    br_struct.Fields[0].VarName,
-				Type:       go_name,
-			},
-		)
+		if len(br_struct.Fields) > 1 {
+			defs[n] = &br_struct
+			defs["DataReader"].Fields = append(
+				defs["DataReader"].Fields,
+				FieldDef{
+					Name:       go_name,
+					BranchName: n,
+					VarName:    br_struct.Fields[0].VarName,
+					Type:       go_name,
+				},
+			)
+		} else {
+			// lump into DataReader.
+			defs["DataReader"].Fields = append(
+				defs["DataReader"].Fields,
+				br_struct.Fields...,
+			)
+		}
 	}
 
 	ctx.DataReader = defs["DataReader"]
