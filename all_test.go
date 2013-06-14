@@ -13,13 +13,13 @@ import (
 type Det struct {
 	E float64
 	T float64
-	//Fs []float64 //FIXME: not yet...
 }
 
 type Event struct {
 	I int64
 	A Det
 	B Det
+	Fs []float64 //FIXME: not yet...
 }
 
 type Cluster struct {
@@ -198,7 +198,7 @@ func TestTreeStructRW(t *testing.T) {
 		tree := croot.NewTree("tree", "tree", splitlevel)
 
 		e := Event{}
-		// e.A.Fs = make([]float64, 0, 10)
+		e.Fs = make([]float64, 0, 10)
 		// e.B.Fs = make([]float64, 0, 2)
 
 		_, err = tree.Branch("evt", &e, bufsiz, 0)
@@ -223,15 +223,15 @@ func TestTreeStructRW(t *testing.T) {
 			e.A.T = src.Float64()
 			e.B.T = e.A.T * (src.NormFloat64()*1. + 0.)
 
-			// e.A.Fs = e.A.Fs[:0]
+			e.Fs = e.Fs[:0]
 			// e.B.Fs = e.B.Fs[:0]
 
-			// e.A.Fs = append(e.A.Fs, e.A.E, e.A.T)
+			e.Fs = append(e.Fs, e.A.E, e.A.T)
 			// e.B.Fs = append(e.B.Fs, e.B.E, e.B.T)
 
-			// if len(e.A.Fs) != 2 {
-			// 	t.Errorf("invalid e.A.Fs size: %v (expected 2)", len(e.A.Fs))
-			// }
+			if len(e.Fs) != 2 {
+				t.Errorf("invalid e.Fs size: %v (expected 2)", len(e.Fs))
+			}
 			// if len(e.B.Fs) != 2 {
 			// 	t.Errorf("invalid e.B.Fs size: %v (expected 2)", len(e.B.Fs))
 			// }
@@ -269,7 +269,7 @@ func TestTreeStructRW(t *testing.T) {
 		}
 
 		var e Event
-		// e.A.Fs = make([]float64, 0, 2)
+		e.Fs = make([]float64, 0, 2)
 		// e.B.Fs = make([]float64, 0, 2)
 		tree.SetBranchAddress("evt", &e)
 
@@ -289,17 +289,17 @@ func TestTreeStructRW(t *testing.T) {
 				add(fmt.Sprintf("evt.b.t= %8.3f\n", e.B.T))
 			}
 
-			// if len(e.A.Fs) != 2 {
-			// 	t.Errorf("invalid e.A.Fs size: %v (expected 2)", len(e.A.Fs))
-			// }
-			// if e.A.Fs[0] != e.A.E {
-			// 	t.Errorf("invalid e.A.Fs[0] value: %v (expected %v)",
-			// 		e.A.Fs[0], e.A.E)
-			// }
-			// if e.A.Fs[1] != e.A.T {
-			// 	t.Errorf("invalid e.A.Fs[0] value: %v (expected %v)",
-			// 		e.A.Fs[1], e.A.T)
-			// }
+			if len(e.Fs) != 2 {
+				t.Errorf("invalid e.Fs size: %v (expected 2)", len(e.Fs))
+			}
+			if e.Fs[0] != e.A.E {
+				t.Errorf("invalid e.Fs[0] value: %v (expected %v)",
+					e.Fs[0], e.A.E)
+			}
+			if e.Fs[1] != e.A.T {
+				t.Errorf("invalid e.Fs[0] value: %v (expected %v)",
+					e.Fs[1], e.A.T)
+			}
 			// if len(e.B.Fs) != 2 {
 			// 	t.Errorf("invalid e.B.Fs size: %v (expected 2)", len(e.B.Fs))
 			// }

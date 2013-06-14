@@ -97,42 +97,41 @@ type gobranch struct {
 // }
 
 func decode_from_c(buf io.Reader, v reflect.Value) error {
-	return binary.Read(buf, binary.LittleEndian, v.Addr().Interface())
+	//return binary.Read(buf, binary.LittleEndian, v.Addr().Interface())
 
-	/*
-		var err error
-		switch v.Type().Kind() {
-		case reflect.Struct:
-			nfields := v.NumField()
-			for i := 0; i < nfields; i++ {
-				field := v.Field(i)
-				fmt.Printf("--[%s.%s] %v --\n", v.Type().Name(), v.Type().Field(i).Name, field.Type())
-				err = decode_from_c(buf, field)
-				fmt.Printf("--[%s.%s] %v -- [done]\n", v.Type().Name(), v.Type().Field(i).Name, field.Type())
-				if err != nil {
-					return err
-				}
-			}
-		case reflect.Slice:
-			goslice := &struct {
-				Data uint64 // ouch
-				Len  int64
-				Cap  int64
-			}{0, -1, -1}
-			vv := reflect.ValueOf(goslice).Elem()
-			err = decode_from_c(buf, vv)
+	var err error
+	switch v.Type().Kind() {
+	case reflect.Struct:
+		nfields := v.NumField()
+		for i := 0; i < nfields; i++ {
+			field := v.Field(i)
+			fmt.Printf("--[%s.%s] %v --\n", v.Type().Name(), v.Type().Field(i).Name, field.Type())
+			err = decode_from_c(buf, field)
+			fmt.Printf("--[%s.%s] %v -- [done]\n", v.Type().Name(), v.Type().Field(i).Name, field.Type())
 			if err != nil {
-				panic(err)
 				return err
 			}
-			fmt.Printf(">>> slice: %v\n", goslice)
-		default:
-			fmt.Printf("--[%s] %v -->\n", v.Type().Name(), v.Type())
-			err = binary.Read(buf, binary.LittleEndian, v.Addr().Interface())
-			fmt.Printf("--[%s] %v --> [done]\n", v.Type().Name(), v.Type())
 		}
-		return err
-	*/
+	case reflect.Slice:
+		goslice := &struct {
+			Data int64 // ouch
+			Len  int64
+			Cap  int64
+		}{0, -1, -1}
+		vv := reflect.ValueOf(goslice).Elem()
+		err = decode_from_c(buf, vv)
+		if err != nil {
+			panic(err)
+			return err
+		}
+		fmt.Printf(">>> slice: %v\n", goslice)
+		
+	default:
+		fmt.Printf("--[%s] %v -->\n", v.Type().Name(), v.Type())
+		err = binary.Read(buf, binary.LittleEndian, v.Addr().Interface())
+		fmt.Printf("--[%s] %v --> [done]\n", v.Type().Name(), v.Type())
+	}
+	return err
 }
 
 func (br gobranch) get_c_branch(t *tree_impl, name string) unsafe.Pointer {
