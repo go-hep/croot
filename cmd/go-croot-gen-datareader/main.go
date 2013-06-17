@@ -127,12 +127,7 @@ func main() {
 		fmt.Printf(":: leaves: %v\n", len(leaves))
 		br_struct := StructDef{Name: go_name, Fields: nil}
 		for j, leaf := range leaves {
-			fmt.Printf(
-				"  br[%d]: %s_%v\n",
-				j,
-				n,
-				leaf.GetName(),
-			)
+			fmt.Printf("  [%03d] leaf: %v\n", j, n)
 			//leaf.Print("")
 			nn := to_go_name(leaf.GetName())
 			typename := leaf.GetTypeName()
