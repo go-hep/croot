@@ -33,6 +33,9 @@ extern "C" {
   typedef void* CRoot_Reflex_ClassBuilder;
   typedef void* CRoot_Reflex_FunctionBuilder;
 
+  typedef void *CRoot_GoObject;
+  typedef void *CRoot_GoObject_Converter;
+
 #ifdef __cplusplus
 }
 #endif

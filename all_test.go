@@ -19,7 +19,24 @@ type Event struct {
 	I int64
 	A Det
 	B Det
-	Fs []float64 //FIXME: not yet...
+}
+
+type DataSlice struct {
+	I     int64
+	Data  float64
+	Slice []float64
+}
+
+type DataArray struct {
+	I     int64
+	Data  float64
+	Array [2]float64
+}
+
+type DataString struct {
+	I      int64
+	Data   float64
+	String string
 }
 
 type Cluster struct {
@@ -38,6 +55,8 @@ func TestTreeBuiltinsRW(t *testing.T) {
 	const bufsiz = 32000
 	const compress = 1
 	const netopt = 0
+
+	return
 
 	// write
 	ref := make([]string, 0, 50)
@@ -182,6 +201,8 @@ func TestTreeStructRW(t *testing.T) {
 	const compress = 1
 	const netopt = 0
 
+	return
+
 	// write
 	ref := make([]string, 0, 50)
 	{
@@ -198,8 +219,6 @@ func TestTreeStructRW(t *testing.T) {
 		tree := croot.NewTree("tree", "tree", splitlevel)
 
 		e := Event{}
-		e.Fs = make([]float64, 0, 10)
-		// e.B.Fs = make([]float64, 0, 2)
 
 		_, err = tree.Branch("evt", &e, bufsiz, 0)
 		if err != nil {
@@ -223,18 +242,6 @@ func TestTreeStructRW(t *testing.T) {
 			e.A.T = src.Float64()
 			e.B.T = e.A.T * (src.NormFloat64()*1. + 0.)
 
-			e.Fs = e.Fs[:0]
-			// e.B.Fs = e.B.Fs[:0]
-
-			e.Fs = append(e.Fs, e.A.E, e.A.T)
-			// e.B.Fs = append(e.B.Fs, e.B.E, e.B.T)
-
-			if len(e.Fs) != 2 {
-				t.Errorf("invalid e.Fs size: %v (expected 2)", len(e.Fs))
-			}
-			// if len(e.B.Fs) != 2 {
-			// 	t.Errorf("invalid e.B.Fs size: %v (expected 2)", len(e.B.Fs))
-			// }
 			if iev%1000 == 0 {
 				add(fmt.Sprintf("evt.i=   %8d\n", e.I))
 				add(fmt.Sprintf("evt.a.e= %8.3f\n", e.A.E))
@@ -269,8 +276,6 @@ func TestTreeStructRW(t *testing.T) {
 		}
 
 		var e Event
-		e.Fs = make([]float64, 0, 2)
-		// e.B.Fs = make([]float64, 0, 2)
 		tree.SetBranchAddress("evt", &e)
 
 		// read events
@@ -289,28 +294,6 @@ func TestTreeStructRW(t *testing.T) {
 				add(fmt.Sprintf("evt.b.t= %8.3f\n", e.B.T))
 			}
 
-			if len(e.Fs) != 2 {
-				t.Errorf("invalid e.Fs size: %v (expected 2)", len(e.Fs))
-			}
-			if e.Fs[0] != e.A.E {
-				t.Errorf("invalid e.Fs[0] value: %v (expected %v)",
-					e.Fs[0], e.A.E)
-			}
-			if e.Fs[1] != e.A.T {
-				t.Errorf("invalid e.Fs[0] value: %v (expected %v)",
-					e.Fs[1], e.A.T)
-			}
-			// if len(e.B.Fs) != 2 {
-			// 	t.Errorf("invalid e.B.Fs size: %v (expected 2)", len(e.B.Fs))
-			// }
-			// if e.B.Fs[0] != e.B.E {
-			// 	t.Errorf("invalid e.B.Fs[0] value: %v (expected %v)",
-			// 		e.B.Fs[0], e.B.E)
-			// }
-			// if e.B.Fs[1] != e.B.T {
-			// 	t.Errorf("invalid e.B.Fs[0] value: %v (expected %v)",
-			// 		e.B.Fs[1], e.B.T)
-			// }
 			if iev != e.I {
 				t.Fatalf("invalid event number. expected %v, got %v", iev, e.I)
 			}
@@ -328,8 +311,376 @@ func TestTreeStructRW(t *testing.T) {
 	}
 }
 
-func init() {
-	croot.RegisterType(&Event{})
+func TestTreeStructSlice(t *testing.T) {
+	const fname = "struct-slice.root"
+	const evtmax = 10
+	const splitlevel = 32
+	const bufsiz = 32000
+	const compress = 1
+	const netopt = 0
+
+	//return
+	fmt.Printf(">>>>>>>>>>>>>>> write slice <<<<<<<<<<<<<<<<\n")
+	// write
+	ref := make([]string, 0, 50)
+	{
+		add := func(str string) {
+			ref = append(ref, str)
+		}
+
+		f, err := croot.OpenFile(fname, "recreate", "croot event file", compress, netopt)
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+
+		// create a tree
+		tree := croot.NewTree("tree", "tree", splitlevel)
+
+		e := DataSlice{}
+		e.Slice = make([]float64, 0)
+
+		_, err = tree.Branch("evt", &e, bufsiz, 0)
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+
+		// initialize our source of random numbers...
+		src := rand.New(rand.NewSource(1))
+
+		// fill some events with random numbers
+		for iev := int64(0); iev != evtmax; iev++ {
+			if iev%1000 == 0 {
+				add(fmt.Sprintf(":: processing event %d...\n", iev))
+			}
+
+			e.I = iev
+			e.Data = src.NormFloat64()
+
+			e.Slice = e.Slice[:0]
+			e.Slice = append(e.Slice, e.Data, -e.Data)
+
+			if len(e.Slice) != 2 {
+				t.Errorf("invalid e.Slice size: %v (expected 2)", len(e.Slice))
+			}
+
+			if iev%1000 == 0 {
+				add(fmt.Sprintf("evt.i=     %8d\n", e.I))
+				add(fmt.Sprintf("evt.d=     %8.3f\n", e.Data))
+				add(fmt.Sprintf("evt.slice= %8.3f %8.3f\n", e.Slice[0], e.Slice[1]))
+			}
+			_, err = tree.Fill()
+			if err != nil {
+				t.Errorf(err.Error())
+			}
+		}
+		f.Write("", 0, 0)
+		f.Close("")
+	}
+
+	fmt.Printf(">>>>>>>>>>>>>>> read <<<<<<<<<<<<<<<<\n")
+	// read back
+	chk := make([]string, 0, 50)
+	{
+		add := func(str string) {
+			chk = append(chk, str)
+		}
+
+		f, err := croot.OpenFile(fname, "read", "croot event file", compress, netopt)
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+
+		tree := f.GetTree("tree")
+		if tree.GetEntries() != evtmax {
+			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
+		}
+
+		var e DataSlice
+		e.Slice = make([]float64, 0, 2)
+		tree.SetBranchAddress("evt", &e)
+
+		// read events
+		for iev := int64(0); iev != evtmax; iev++ {
+			if iev%1000 == 0 {
+				add(fmt.Sprintf(":: processing event %d...\n", iev))
+			}
+			if tree.GetEntry(iev, 1) <= 0 {
+				panic("error")
+			}
+			if iev%1000 == 0 {
+				add(fmt.Sprintf("evt.i=     %8d\n", e.I))
+				add(fmt.Sprintf("evt.d=     %8.3f\n", e.Data))
+				add(fmt.Sprintf("evt.slice= %8.3f %8.3f\n", e.Slice[0], e.Slice[1]))
+			}
+
+			if len(e.Slice) != 2 {
+				t.Errorf("invalid e.Slice size: %v (expected 2)", len(e.Slice))
+			}
+			if e.Slice[0] != e.Data {
+				t.Errorf("invalid e.Slice[0] value: %v (expected %v)",
+					e.Slice[0], e.Data)
+			}
+			if e.Slice[1] != -e.Data {
+				t.Errorf("invalid e.Slice[0] value: %v (expected %v)",
+					e.Slice[1], -e.Data)
+			}
+			if iev != e.I {
+				t.Fatalf("invalid event number. expected %v, got %v", iev, e.I)
+			}
+		}
+		f.Close("")
+	}
+
+	if !reflect.DeepEqual(ref, chk) {
+		t.Errorf("log files do not match")
+	}
+
+	err := os.Remove(fname)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+}
+
+func TestTreeStructArray(t *testing.T) {
+	const fname = "struct-array.root"
+	const evtmax = 10
+	const splitlevel = 32
+	const bufsiz = 32000
+	const compress = 1
+	const netopt = 0
+
+	return
+	// write
+	ref := make([]string, 0, 50)
+	{
+		add := func(str string) {
+			ref = append(ref, str)
+		}
+
+		f, err := croot.OpenFile(fname, "recreate", "croot event file", compress, netopt)
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+
+		// create a tree
+		tree := croot.NewTree("tree", "tree", splitlevel)
+
+		e := DataArray{}
+
+		_, err = tree.Branch("evt", &e, bufsiz, 0)
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+
+		// initialize our source of random numbers...
+		src := rand.New(rand.NewSource(1))
+
+		// fill some events with random numbers
+		for iev := int64(0); iev != evtmax; iev++ {
+			if iev%1000 == 0 {
+				add(fmt.Sprintf(":: processing event %d...\n", iev))
+			}
+
+			e.I = iev
+			e.Data = src.NormFloat64()
+
+			e.Array[0] = e.Data
+			e.Array[1] = -e.Data
+
+			if len(e.Array) != 2 {
+				t.Errorf("invalid e.Array size: %v (expected 2)", len(e.Array))
+			}
+
+			if iev%1000 == 0 {
+				add(fmt.Sprintf("evt.i=     %8d\n", e.I))
+				add(fmt.Sprintf("evt.d=     %8.3f\n", e.Data))
+				add(fmt.Sprintf("evt.array= %8.3f %8.3f\n", e.Array[0], e.Array[1]))
+			}
+			_, err = tree.Fill()
+			if err != nil {
+				t.Errorf(err.Error())
+			}
+		}
+		f.Write("", 0, 0)
+		f.Close("")
+	}
+
+	// read back
+	chk := make([]string, 0, 50)
+	{
+		add := func(str string) {
+			chk = append(chk, str)
+		}
+
+		f, err := croot.OpenFile(fname, "read", "croot event file", compress, netopt)
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+
+		tree := f.GetTree("tree")
+		if tree.GetEntries() != evtmax {
+			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
+		}
+
+		var e DataArray
+		tree.SetBranchAddress("evt", &e)
+
+		// read events
+		for iev := int64(0); iev != evtmax; iev++ {
+			if iev%1000 == 0 {
+				add(fmt.Sprintf(":: processing event %d...\n", iev))
+			}
+			if tree.GetEntry(iev, 1) <= 0 {
+				panic("error")
+			}
+			if iev%1000 == 0 {
+				add(fmt.Sprintf("evt.i=     %8d\n", e.I))
+				add(fmt.Sprintf("evt.d=     %8.3f\n", e.Data))
+				add(fmt.Sprintf("evt.array= %8.3f %8.3f\n", e.Array[0], e.Array[1]))
+			}
+
+			if len(e.Array) != 2 {
+				t.Errorf("invalid e.Array size: %v (expected 2)", len(e.Array))
+			}
+			if e.Array[0] != e.Data {
+				t.Errorf("invalid e.Array[0] value: %v (expected %v)",
+					e.Array[0], e.Data)
+			}
+			if e.Array[1] != -e.Data {
+				t.Errorf("invalid e.Array[0] value: %v (expected %v)",
+					e.Array[1], -e.Data)
+			}
+			if iev != e.I {
+				t.Fatalf("invalid event number. expected %v, got %v", iev, e.I)
+			}
+		}
+		f.Close("")
+	}
+
+	if !reflect.DeepEqual(ref, chk) {
+		t.Errorf("log files do not match")
+	}
+
+	err := os.Remove(fname)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+}
+
+func TestTreeStructString(t *testing.T) {
+	const fname = "struct-string.root"
+	const evtmax = 10
+	const splitlevel = 32
+	const bufsiz = 32000
+	const compress = 1
+	const netopt = 0
+
+	return
+
+	fmt.Printf(">>>>>>>>>>>>>>> write <<<<<<<<<<<<<<<<\n")
+
+	// write
+	ref := make([]string, 0, 50)
+	{
+		add := func(str string) {
+			ref = append(ref, str)
+		}
+
+		f, err := croot.OpenFile(fname, "recreate", "croot event file", compress, netopt)
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+
+		// create a tree
+		tree := croot.NewTree("tree", "tree", splitlevel)
+
+		e := DataString{}
+
+		_, err = tree.Branch("evt", &e, bufsiz, 0)
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+
+		// initialize our source of random numbers...
+		src := rand.New(rand.NewSource(1))
+
+		// fill some events with random numbers
+		for iev := int64(0); iev != evtmax; iev++ {
+			if iev%1000 == 0 {
+				add(fmt.Sprintf(":: processing event %d...\n", iev))
+			}
+
+			e.I = iev
+			e.Data = src.NormFloat64()
+
+			e.String = fmt.Sprintf("%v", e.Data)
+
+			if iev%1000 == 0 {
+				add(fmt.Sprintf("evt.i=     %8d\n", e.I))
+				add(fmt.Sprintf("evt.d=     %v\n", e.Data))
+				add(fmt.Sprintf("evt.s=     %s\n", e.String))
+			}
+			_, err = tree.Fill()
+			if err != nil {
+				t.Errorf(err.Error())
+			}
+		}
+		f.Write("", 0, 0)
+		f.Close("")
+	}
+
+	fmt.Printf(">>>>>>>>>>>>>>> read <<<<<<<<<<<<<<<<\n")
+
+	// read back
+	chk := make([]string, 0, 50)
+	{
+		add := func(str string) {
+			chk = append(chk, str)
+		}
+
+		f, err := croot.OpenFile(fname, "read", "croot event file", compress, netopt)
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+
+		tree := f.GetTree("tree")
+		if tree.GetEntries() != evtmax {
+			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
+		}
+
+		var e DataString
+		tree.SetBranchAddress("evt", &e)
+
+		// read events
+		for iev := int64(0); iev != evtmax; iev++ {
+			fmt.Printf(":: processing event %d...\n", iev)
+			if iev%1000 == 0 {
+				add(fmt.Sprintf(":: processing event %d...\n", iev))
+			}
+			if tree.GetEntry(iev, 1) <= 0 {
+				panic("error")
+			}
+			if iev%1000 == 0 {
+				add(fmt.Sprintf("evt.i=     %8d\n", e.I))
+				add(fmt.Sprintf("evt.d=     %vf\n", e.Data))
+				add(fmt.Sprintf("evt.s=     %s\n", e.String))
+			}
+
+			if iev != e.I {
+				t.Fatalf("invalid event number. expected %v, got %v", iev, e.I)
+			}
+		}
+		f.Close("")
+	}
+
+	if !reflect.DeepEqual(ref, chk) {
+		t.Errorf("log files do not match\n==ref==\n%s\n==chk==\n%s\n", ref, chk)
+	}
+
+	err := os.Remove(fname)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
 }
 
 // EOF
