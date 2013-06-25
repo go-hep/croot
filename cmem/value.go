@@ -88,6 +88,7 @@ func New(typ Type) Value {
 	if val == nil {
 		panic("cmem: OOM")
 	}
+	val = C.memset(val, 0, C.size_t(typ.Size()))
 	return Value{typ: typ, val: val}
 }
 
@@ -177,7 +178,7 @@ func (v Value) Cap() int {
 	case Slice:
 		vcap := (*cmem_slice)(v.val).Cap
 		//elem_sz := v.typ.Elem().Size()
-		return vcap // / int(elem_sz)
+		return int(vcap) // / int(elem_sz)
 	}
 	panic(&ValueError{"cmem.Value.Cap", k})
 }
@@ -303,7 +304,9 @@ func (v Value) GoValue() reflect.Value {
 		}
 
 	case reflect.String:
-		panic("cmem.Value.GoValue: String not implemented")
+		cstr := (*cmem_string)(v.val)
+		s := C.GoStringN((*C.char)(cstr.Data), C.int(cstr.Len))
+		rv.Set(reflect.ValueOf(s))
 
 	default:
 		panic("cmem.Value.GoValue: unhandled kind [" + rt.Kind().String() + "]")
@@ -329,7 +332,7 @@ func (v Value) Index(i int) Value {
 
 	case Slice:
 		s := (*cmem_slice)(v.val)
-		if i < 0 || i >= s.Len {
+		if i < 0 || i >= int(s.Len) {
 			panic("cmem: slice index out of range")
 		}
 		tt := v.typ.(*cmem_slice_type)
@@ -385,7 +388,7 @@ func (v Value) Kind() Kind {
 }
 
 // Len returns v's length.
-// It panics if v's Kind is not Array or Slice
+// It panics if v's Kind is not Array, Slice or String
 func (v Value) Len() int {
 	switch k := v.Kind(); k {
 	case Array:
@@ -395,7 +398,10 @@ func (v Value) Len() int {
 		vlen := (*cmem_slice)(v.val).Len
 		//elem_sz := v.typ.Elem().Size()
 		//fmt.Printf("::: type[%v] vlen=%v elem_sz=%v\n", v.typ.Name(), vlen, elem_sz)
-		return vlen // / int(elem_sz)
+		return int(vlen) // / int(elem_sz)
+	case String:
+		vlen := (*cmem_string)(v.val).Len
+		return int(vlen)
 	default:
 		panic(&ValueError{"cmem.Value.Len", k})
 	}
@@ -477,7 +483,22 @@ func (v *Value) set_value(x reflect.Value) {
 		}
 
 	case reflect.String:
-		panic("cmem.Value.SetValue: String not implemented")
+		str := x.String()
+		gostr := C.CString(str)
+		defer C.free(unsafe.Pointer(gostr))
+		cstr := (*cmem_slice)(v.val)
+		cstr.Len = croot_int(len(str))
+		if cstr.Data == nil {
+			cstr.Data = unsafe.Pointer(C.malloc(C.size_t(len(str)+1) * C.size_t(unsafe.Sizeof((*byte)(nil)))))
+			fmt.Printf("nil string\n")
+		}
+		if cstr.Data != nil {
+			C.free(cstr.Data)
+		}
+		C.strcpy((*C.char)(cstr.Data), gostr)
+		fmt.Printf("go-str: %q (%v)\n", x.Interface(), len(str))
+		fmt.Printf("go-str: %q (%v)\n", str, len(str))
+		fmt.Printf("c-str:  len=%v ptr=0x%x\n", cstr.Len, cstr.Data)
 
 	default:
 		panic("cmem.Value.SetValue: unhandled kind [" + rt.Kind().String() + "]")
@@ -526,9 +547,8 @@ func (v Value) SetLen(n int) {
 	if n < 0 || n > int(s.Cap) {
 		panic("reflect: slice length out of range in SetLen")
 	}
-	//elem_sz := v.typ.Elem().Size()
-	s.Len = n //* int(elem_sz)
-	//s.Cap = n * int(elem_sz)
+	s.Len = croot_int(n)
+	//s.Cap = n
 }
 
 // SetPointer sets the unsafe.Pointer value v to x.
@@ -581,7 +601,7 @@ func (v Value) Slice(beg, end int) Value {
 		typ = v.typ.(*cmem_slice_type)
 		s := (*cmem_slice)(v.val)
 		base = unsafe.Pointer(s.Data)
-		cap = s.Cap
+		cap = int(s.Cap)
 
 	}
 	if beg < 0 || end < beg || end > cap {
@@ -724,7 +744,9 @@ func ValueOf(i interface{}) Value {
 		v.SetValue(rv)
 
 	case reflect.String:
-		panic("cmem.ValueOf: String unimplemented")
+		ct := ctype_from_gotype(rt)
+		v = New(ct)
+		v.SetValue(rv)
 
 	case reflect.Slice:
 		ct := ctype_from_gotype(rt)
@@ -758,10 +780,11 @@ func MakeSlice(typ Type, vlen, vcap int) Value {
 	//slice_len := vlen * int(typ.Elem().Size())
 	//slice_cap := vcap * int(typ.Elem().Size())
 	x := &cmem_slice{
-		Len:  vlen, //slice_len,
-		Cap:  vcap, //slice_cap,
+		Len:  croot_int(vlen), //slice_len,
+		Cap:  croot_int(vcap), //slice_cap,
 		Data: nil,
 	}
+	x.Cap = x.Len // FIXME ??
 	x.Data = C.calloc(C.size_t(vlen), C.size_t(typ.Elem().Size()))
 
 	// Reinterpret as *SliceHeader to edit.
@@ -805,14 +828,18 @@ func grow_slice(s Value, extra int) (Value, int, int) {
 	return t, i0, i1
 }
 
+// the int ROOT uses for [Len] of C-arrays
+// FIXME: this should be just int or int64 with ROOT-6.
+type croot_int int32
+
 type cmem_slice struct {
-	Len  int
-	Cap  int
+	Len  croot_int
+	Cap  croot_int
 	Data unsafe.Pointer
 }
 
 type cmem_string struct {
-	Len  int
+	Len  croot_int
 	Data unsafe.Pointer
 }
 

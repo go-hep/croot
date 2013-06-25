@@ -56,8 +56,6 @@ func TestTreeBuiltinsRW(t *testing.T) {
 	const compress = 1
 	const netopt = 0
 
-	return
-
 	// write
 	ref := make([]string, 0, 50)
 	{
@@ -201,8 +199,6 @@ func TestTreeStructRW(t *testing.T) {
 	const compress = 1
 	const netopt = 0
 
-	return
-
 	// write
 	ref := make([]string, 0, 50)
 	{
@@ -313,14 +309,12 @@ func TestTreeStructRW(t *testing.T) {
 
 func TestTreeStructSlice(t *testing.T) {
 	const fname = "struct-slice.root"
-	const evtmax = 10
+	const evtmax = 10000
 	const splitlevel = 32
 	const bufsiz = 32000
 	const compress = 1
 	const netopt = 0
 
-	//return
-	fmt.Printf(">>>>>>>>>>>>>>> write slice <<<<<<<<<<<<<<<<\n")
 	// write
 	ref := make([]string, 0, 50)
 	{
@@ -377,7 +371,6 @@ func TestTreeStructSlice(t *testing.T) {
 		f.Close("")
 	}
 
-	fmt.Printf(">>>>>>>>>>>>>>> read <<<<<<<<<<<<<<<<\n")
 	// read back
 	chk := make([]string, 0, 50)
 	{
@@ -443,13 +436,12 @@ func TestTreeStructSlice(t *testing.T) {
 
 func TestTreeStructArray(t *testing.T) {
 	const fname = "struct-array.root"
-	const evtmax = 10
+	const evtmax = 10000
 	const splitlevel = 32
 	const bufsiz = 32000
 	const compress = 1
 	const netopt = 0
 
-	return
 	// write
 	ref := make([]string, 0, 50)
 	{
@@ -569,15 +561,13 @@ func TestTreeStructArray(t *testing.T) {
 
 func TestTreeStructString(t *testing.T) {
 	const fname = "struct-string.root"
-	const evtmax = 10
+	const evtmax = 10000
 	const splitlevel = 32
 	const bufsiz = 32000
 	const compress = 1
 	const netopt = 0
 
-	return
-
-	fmt.Printf(">>>>>>>>>>>>>>> write <<<<<<<<<<<<<<<<\n")
+	return // FIXME
 
 	// write
 	ref := make([]string, 0, 50)
@@ -629,8 +619,6 @@ func TestTreeStructString(t *testing.T) {
 		f.Close("")
 	}
 
-	fmt.Printf(">>>>>>>>>>>>>>> read <<<<<<<<<<<<<<<<\n")
-
 	// read back
 	chk := make([]string, 0, 50)
 	{
@@ -674,7 +662,7 @@ func TestTreeStructString(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(ref, chk) {
-		t.Errorf("log files do not match\n==ref==\n%s\n==chk==\n%s\n", ref, chk)
+		t.Fatalf("log files do not match\n==ref==\n%s\n==chk==\n%s\n", ref, chk)
 	}
 
 	err := os.Remove(fname)

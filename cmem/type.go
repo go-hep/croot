@@ -219,7 +219,21 @@ var (
 		cmem_type: cmem_type{"*", Ptr, reflect.TypeOf(nil)},
 		elem:      nil,
 	}
+
+	C_string = &cmem_string_type{
+		cmem_type: cmem_type{"char*", Ptr, reflect.TypeOf("")},
+		elem:      C_char,
+	}
 )
+
+type cmem_string_type struct {
+	cmem_type
+	elem Type
+}
+
+func (t *cmem_string_type) Elem() Type {
+	return t.elem
+}
 
 type StructField struct {
 	Name   string  // Name is the field name
@@ -358,8 +372,8 @@ func NewPointerType(typ reflect.Type) (Type, error) {
 }
 
 type cmem_slice_header struct {
-	Len  int
-	Cap  int
+	Len  croot_int
+	Cap  croot_int
 	Data unsafe.Pointer
 }
 
@@ -505,7 +519,8 @@ func ctype_from_gotype(rt reflect.Type) Type {
 		t = ct
 
 	case reflect.String:
-		panic("unimplemented")
+		t = C_string
+
 	default:
 		panic("unhandled kind [" + rt.Kind().String() + "]")
 	}
@@ -567,6 +582,7 @@ var _ Type = (*cmem_type)(nil)
 var _ Type = (*cmem_array_type)(nil)
 var _ Type = (*cmem_ptr_type)(nil)
 var _ Type = (*cmem_slice_type)(nil)
+var _ Type = (*cmem_string_type)(nil)
 var _ Type = (*cmem_struct_type)(nil)
 
 // EOF
