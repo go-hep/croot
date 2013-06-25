@@ -53,6 +53,9 @@ test_cmd = \
 
 cxx_croot_sources := \
  bindings/src/croot.cxx \
+ bindings/src/goedmdict.cxx \
+ bindings/src/croot_go_schema.cxx \
+ bindings/src/croot_goobject.cxx \
  bindings/src/croot_class.cxx \
  bindings/src/croot_leaf.cxx \
  bindings/src/croot_hist.cxx 
@@ -70,6 +73,7 @@ dirs:
 	@$(CXX) $(CXX_CROOT_CXXFLAGS) -o $@ -c $<
 
 install: cxx-lib
+	@$(install_cmd) ./cmem
 	@$(install_cmd) .
 	@$(install_cmd) ./cmd/...
 
@@ -80,6 +84,7 @@ cxx-lib: dirs $(cxx_croot_objects)
 	 $(cxx_croot_objects)
 
 test: install
+	@$(test_cmd) ./cmem
 	@$(test_cmd) .
 
 clean:

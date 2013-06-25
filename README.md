@@ -23,6 +23,14 @@ ok  	github.com/go-hep/croot	2.862s
  http://godoc.org/github.com/go-hep/croot
 
 
+## ``TTree`` Limitations/Status
+
+- read/write of C-builtins: **WORKS**
+- read/write of arrays: **WORKS**
+- read/write of slices: **WORKS**
+- read/write of structs: **WORKS**
+- read/write of strings: **DOES NOT WORK**
+
 ## Example
 
 `croot` can now (correctly) write and read `go` structs which have

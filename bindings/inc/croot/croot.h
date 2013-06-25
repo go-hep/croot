@@ -27,6 +27,8 @@
 #include "croot/croot_types.h"
 #include "croot/croot_globals.h"
 
+#include "croot/croot_goobject.h"
+
 #include "croot/croot_chain.h"
 #include "croot/croot_cintex.h"
 #include "croot/croot_cint.h"

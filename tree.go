@@ -4,20 +4,28 @@ package croot
 //
 // #include <stdlib.h>
 // #include <string.h>
+// #include <stdio.h>
 //
 // double _go_croot_double_at(double *array, int idx)
 // { return array[idx]; }
 //
+// char* _go_croot_new_string(void* src, int len)
+// {
+//   char *dst = (char*)malloc((len+1) * sizeof(char));
+//   if (dst == NULL) { return NULL; }
+//   dst = strncpy(dst, src, len);
+//   dst[len] = '\0';
+//   return dst;
+// }
 import "C"
 
 import (
-	"bytes"
-	"encoding/binary"
 	"fmt"
-	"io"
 	"os"
 	"reflect"
 	"unsafe"
+
+	"github.com/go-hep/croot/cmem"
 )
 
 // Tree
@@ -49,7 +57,7 @@ type Tree interface {
 
 type tree_impl struct {
 	c        C.CRoot_Tree
-	branches map[string]gobranch
+	branches map[string]*gobranch
 }
 
 func (t *tree_impl) cptr() C.CRoot_Object {
@@ -85,57 +93,16 @@ func (t *tree_impl) InheritsFrom(clsname string) bool {
 }
 
 type gobranch struct {
-	v    reflect.Value  // pointer to go-value
-	c    unsafe.Pointer // pointer to C-backed buffer
-	buf  uintptr        // pointer to go-value buffer
-	addr unsafe.Pointer // address of that go-value buffer
-	br   *branch_impl
+	v     reflect.Value  // pointer to go-value
+	c     cmem.Value     // pointer to C-value
+	cptr  unsafe.Pointer // pointer to C-value buffer
+	addr  unsafe.Pointer // address of that C-value buffer
+	valid bool           // whether the branch has been correctly connected to the Tree C-buffer
+	br    *branch_impl
 }
 
-// func (br gobranch) update_from_go() {
-// 	br.c.SetValue(br.g.Elem())
-// }
-
-func decode_from_c(buf io.Reader, v reflect.Value) error {
-	return binary.Read(buf, binary.LittleEndian, v.Addr().Interface())
-
-	/*
-		var err error
-		switch v.Type().Kind() {
-		case reflect.Struct:
-			nfields := v.NumField()
-			for i := 0; i < nfields; i++ {
-				field := v.Field(i)
-				fmt.Printf("--[%s.%s] %v --\n", v.Type().Name(), v.Type().Field(i).Name, field.Type())
-				err = decode_from_c(buf, field)
-				fmt.Printf("--[%s.%s] %v -- [done]\n", v.Type().Name(), v.Type().Field(i).Name, field.Type())
-				if err != nil {
-					return err
-				}
-			}
-		case reflect.Slice:
-			goslice := &struct {
-				Data uint64 // ouch
-				Len  int64
-				Cap  int64
-			}{0, -1, -1}
-			vv := reflect.ValueOf(goslice).Elem()
-			err = decode_from_c(buf, vv)
-			if err != nil {
-				panic(err)
-				return err
-			}
-			fmt.Printf(">>> slice: %v\n", goslice)
-		default:
-			fmt.Printf("--[%s] %v -->\n", v.Type().Name(), v.Type())
-			err = binary.Read(buf, binary.LittleEndian, v.Addr().Interface())
-			fmt.Printf("--[%s] %v --> [done]\n", v.Type().Name(), v.Type())
-		}
-		return err
-	*/
-}
-
-func (br gobranch) get_c_branch(t *tree_impl, name string) unsafe.Pointer {
+func (br *gobranch) get_c_branch(t *tree_impl, name string) unsafe.Pointer {
+	//fmt.Printf("::: get_c_branch...\n")
 	var ptr unsafe.Pointer
 
 	c_name := C.CString(name)
@@ -154,12 +121,15 @@ func (br gobranch) get_c_branch(t *tree_impl, name string) unsafe.Pointer {
 
 	// found a branched object.
 	if c_br != nil {
+		//fmt.Printf("==[%s]... branched object...\n", name)
 		cls_name := t.GetBranch(name).GetClassName()
 		cls := GetClass(cls_name)
 		//fmt.Printf(">>> [%v] -> class=%q %v\n", name, cls_name, cls)
 		if cls != nil {
 			//fmt.Printf("==[%s]... TBranch::GetAddress()...\n", name)
-			return unsafe.Pointer(C.CRoot_Branch_GetAddress(c_br))
+			addr := unsafe.Pointer(C.CRoot_Branch_GetAddress(c_br))
+			ptr = *(*unsafe.Pointer)(addr)
+			return ptr
 		}
 	}
 
@@ -207,44 +177,26 @@ func (br gobranch) get_c_branch(t *tree_impl, name string) unsafe.Pointer {
 	return ptr
 }
 
-func (br gobranch) update_from_c(t *tree_impl, name string) error {
+func (br *gobranch) update_from_c(t *tree_impl, name string) error {
 	if !br.v.IsValid() {
 		return fmt.Errorf("croot.update_from_c: invalid branch [%v]", name)
 	}
 
-	if br.c == nil {
-		//fmt.Printf(">>> br.c=%v (%v)\n", br.c, name)
-		br.c = br.get_c_branch(t, name)
-		//fmt.Printf(">>> br.c=%v\n", br.c)
+	if !br.valid {
+		//fmt.Printf(">>> br.c=%v (%v)\n", br.c.UnsafeAddr(), name)
+		ptr := br.get_c_branch(t, name)
+		br.c = cmem.NewAt(br.c.Type(), ptr)
+		//fmt.Printf(">>> br.c=%v\n", br.c.GoValue().Interface())
+		br.valid = true
 	}
-	if br.c == nil {
+	if br.c.UnsafeAddr() == 0 {
 		return fmt.Errorf(
 			"croot.update_from_c: NULL C-pointer for branch [%s]",
 			name,
 		)
 	}
 
-	c_buf := *(*[1<<16 - 1]byte)(br.c)
-	buf := bytes.NewBuffer(c_buf[:])
-	err := decode_from_c(buf, br.v)
-	if err != nil {
-		// fmt.Printf("buf=%v\n", c_buf[:8])
-		// vv := *(*uint32)(br.c)
-		// fmt.Printf("cval=%v\n", vv)
-		// fmt.Printf("val=%v\n", br.v.Interface())
-		return err
-	}
-	// if name == "evt" {
-	// 	fmt.Printf("buf=%v\n", c_buf[:1024])
-	// 	fmt.Printf("val=%v\n", br.v.Interface())
-	// 	buf := bytes.NewBuffer(c_buf[:])
-	// 	err := binary.Read(buf, binary.LittleEndian, br.v.Field(0).Addr().Interface())
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	fmt.Printf("val=%v\n", br.v.Interface())
-	// }
-
+	br.v.Set(br.c.GoValue())
 	return nil
 }
 
@@ -254,7 +206,7 @@ func NewTree(name, title string, splitlevel int) Tree {
 	c_title := C.CString(title)
 	defer C.free(unsafe.Pointer(c_title))
 	t := C.CRoot_Tree_new(c_name, c_title, C.int32_t(splitlevel))
-	b := make(map[string]gobranch)
+	b := make(map[string]*gobranch)
 	return &tree_impl{c: t, branches: b}
 }
 
@@ -276,14 +228,12 @@ func (t *tree_impl) Branch(name string, obj interface{}, bufsiz, splitlevel int)
 	if val.Type().Kind() != reflect.Struct {
 		return nil, fmt.Errorf("croot.Tree.Branch: takes a pointer to a struct (got %v)", ptr.Type())
 	}
-	br := gobranch{v: val}
+	br := &gobranch{v: val, c: cmem.ValueOf(val.Interface())}
 	// register the type with Reflex
 	genreflex(br.v.Type())
 
-	// this scaffolding is needed b/c we need to keep the UnsafeAddr alive.
-	br.buf = br.v.UnsafeAddr()
-	br.addr = unsafe.Pointer(&br.buf)
-	//
+	br.cptr = unsafe.Pointer(br.c.UnsafeAddr())
+	br.addr = unsafe.Pointer(&br.cptr)
 
 	classname := to_cxx_name(val.Type())
 	c_classname := C.CString(classname)
@@ -292,6 +242,7 @@ func (t *tree_impl) Branch(name string, obj interface{}, bufsiz, splitlevel int)
 	b := C.CRoot_Tree_Branch(t.c, c_name, c_classname, br.addr, C.int32_t(bufsiz), C.int32_t(splitlevel))
 	br.br = &branch_impl{c: b}
 	t.branches[name] = br
+
 	return br.br, nil
 }
 
@@ -311,14 +262,12 @@ func (t *tree_impl) Branch2(name string, objaddr interface{}, leaflist string, b
 		reflect.Slice:
 		return nil, fmt.Errorf("croot.Tree.Branch: takes a pointer to a builtin (got %v)", ptr.Type())
 	}
-	br := gobranch{v: val}
+	br := &gobranch{v: val, c: cmem.ValueOf(val.Interface())}
 	// register the type with Reflex
 	genreflex(br.v.Type())
 
-	// this scaffolding is needed b/c we need to keep the UnsafeAddr alive.
-	br.buf = br.v.UnsafeAddr()
-	br.addr = unsafe.Pointer(br.buf)
-	//
+	br.cptr = unsafe.Pointer(br.c.UnsafeAddr())
+	br.addr = unsafe.Pointer(br.cptr)
 
 	c_leaflist := C.CString(leaflist)
 	defer C.free(unsafe.Pointer(c_leaflist))
@@ -331,20 +280,10 @@ func (t *tree_impl) Branch2(name string, objaddr interface{}, leaflist string, b
 
 func (t *tree_impl) Fill() (int, error) {
 	// fmt.Printf("=== fill ===...\n")
-	// for n, v := range t.branches {
-	// 	fmt.Printf("branch[%s]: %v (%p)\n", n, v.v.Interface(),
-	// 		unsafe.Pointer(v.v.UnsafeAddr()))
-	// 	if n == "evt" {
-	// 		vv := v.v.Field(1).Field(2)
-	// 		fmt.Printf("   evt.A.Fs: %d %v (%p)\n", vv.Len(), vv.Interface(),
-	// 			unsafe.Pointer(vv.UnsafeAddr()))
-	// 	}
-	// }
+	for _, br := range t.branches {
+		br.c.SetValue(br.v)
+	}
 	nb := int(C.CRoot_Tree_Fill(t.c))
-	// fmt.Printf("--addrs: %d\n", len(addrs))
-	// if o > 0 {
-	// 	addrs = addrs[:0]
-	// }
 	// fmt.Printf("=== fill ===... [done]\n")
 	if nb < 0 {
 		return nb, fmt.Errorf("croot.Tree.Fill: error")
@@ -367,6 +306,7 @@ func (t *tree_impl) GetEntries() int64 {
 }
 
 func (t *tree_impl) GetEntry(entry int64, getall int) int {
+	//fmt.Fprintf(os.Stderr, ">> GetEntry(%v, %v)...\n", entry, getall)
 	nbytes := C.CRoot_Tree_GetEntry(t.c, C.int64_t(entry), C.int32_t(getall))
 	if nbytes > 0 {
 		for nn, br := range t.branches {
@@ -507,23 +447,17 @@ func (t *tree_impl) SetBranchAddress(name string, obj interface{}) int32 {
 		val = reflect.Indirect(ptr)
 	}
 
-	br := gobranch{v: val}
+	br := &gobranch{v: val}
 	typ := br.v.Type()
 	// register the type with Reflex
 	genreflex(typ)
 
-	br.c = nil
-	br.addr = unsafe.Pointer(&br.c)
+	br.c = cmem.ValueOf(val.Interface())
+	br.cptr = unsafe.Pointer(br.c.UnsafeAddr())
+	br.addr = unsafe.Pointer(&br.cptr)
 	//
 
-	// fmt.Printf("br.buf:  0x%x\n", br.buf)
-	// fmt.Printf("br.addr: %v\n", unsafe.Pointer(&br.buf))
-	// fmt.Printf("br.addr: %v\n", unsafe.Pointer(br.buf))
-	// fmt.Printf("br.addr: %v\n", br.addr)
 	rc := C.CRoot_Tree_SetBranchAddress(t.c, c_name, br.addr, nil)
-
-	//c_br := C.CRoot_Tree_GetBranch(t.c, c_name)
-	//br.c = unsafe.Pointer(C.CRoot_Branch_GetAddress(c_br))
 
 	t.branches[name] = br
 	return int32(rc)

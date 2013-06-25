@@ -111,7 +111,7 @@ func (f *file_impl) GetTree(namecycle string) Tree {
 		return nil
 	}
 	c_t := (C.CRoot_Tree)(unsafe.Pointer(o.(c_object).cptr()))
-	return &tree_impl{c: c_t, branches: make(map[string]gobranch)}
+	return &tree_impl{c: c_t, branches: make(map[string]*gobranch)}
 }
 
 func (f *file_impl) IsOpen() bool {

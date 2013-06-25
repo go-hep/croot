@@ -37,13 +37,15 @@ import (
 	"fmt"
 	"reflect"
 	"unsafe"
-
-	//"github.com/sbinet/go-ffi/pkg/ffi"
 )
 
+// the int ROOT uses for [Len] of C-arrays
+// FIXME: this should be just int or int64 with ROOT-6.
+type croot_int int32
+
 var (
-	_c_pointer_sz = reflect.TypeOf(uintptr(0)).Size()
-	_c_int_sz     = reflect.TypeOf(int(0)).Size()
+	_c_pointer_sz   = reflect.TypeOf(uintptr(0)).Size()
+	_c_croot_int_sz = reflect.TypeOf(croot_int(0)).Size()
 )
 
 type ctor_fct func(retaddr, mem, args, ctx unsafe.Pointer)
@@ -66,6 +68,7 @@ var reflexed_types map[string]*ReflexType
 
 func init() {
 	reflexed_types = make(map[string]*ReflexType)
+	reflexed_types["golang::string"] = genreflex_string()
 }
 
 // RegisterType declares the (equivalent) C-layout of value v to ROOT so
@@ -107,6 +110,7 @@ func genreflex(t reflect.Type) {
 	_, ok := reflexed_types[reflect_name2rflx(t)]
 	if ok {
 		// already processed...
+		//fmt.Printf("::genreflex[%v]... (already processed)\n", t)
 		return
 	}
 
@@ -133,6 +137,7 @@ func genreflex(t reflect.Type) {
 
 	case reflect.Array:
 		genreflex(t.Elem())
+		rflx_type = rflx_type_from(t)
 
 	// case reflect.Chan:
 	// 	panic(fmt.Sprintf("cannot handle Chan-kind [%s]", t.Name()))
@@ -147,15 +152,15 @@ func genreflex(t reflect.Type) {
 	// 	panic(fmt.Sprintf("cannot handle Map-kind [%s]", t.Name()))
 
 	case reflect.Ptr:
+		//fmt.Printf("genreflex-ptr...\n")
 		genreflex(t.Elem())
 
 	case reflect.Slice:
 		genreflex(t.Elem())
-		//fmt.Printf("--> slice: %s %v\n", t.Name(), t.Size())
 		rflx_type = genreflex_slice(t)
 
 	case reflect.String:
-		//FIXME
+		rflx_type = ReflexType_ByName("golang::string")
 
 	case reflect.Struct:
 		rflx_type = genreflex_struct(t)
@@ -174,7 +179,7 @@ func genreflex(t reflect.Type) {
 func genreflex_struct(t reflect.Type) *ReflexType {
 	tname := t.Name()
 	full_name := to_cxx_name(t)
-	// fmt.Printf("::genreflex_struct[%s]...\n", full_name)
+	//fmt.Printf("::genreflex_struct[%s]...\n", full_name)
 
 	bldr := NewReflexClassBuilder(
 		//FIXME: generate namespaces for each containing package
@@ -189,6 +194,7 @@ func genreflex_struct(t reflect.Type) *ReflexType {
 		f := t.Field(i)
 		offset := f.Offset
 		f_name := f.Name
+		genreflex(f.Type)
 		bldr.AddDataMember(
 			rflx_type_from(f.Type),
 			f_name,
@@ -221,7 +227,7 @@ func genreflex_struct(t reflect.Type) *ReflexType {
 	// fmt.Printf(":: reflect-siz: %d\n", t.Size())
 	// fmt.Printf(":: %s-size: %d\n", rt.Name(), rt.SizeOf())
 	// fmt.Printf(":: %s-mbrs: %d\n", rt.Name(), rt.DataMemberSize(Reflex_INHERITEDMEMBERS_NO))
-	// fmt.Printf("::genreflex_struct[%s]...[done]\n", full_name)
+	//fmt.Printf("::genreflex_struct[%s]...[done]\n", full_name)
 	return rt
 }
 
@@ -229,8 +235,16 @@ func genreflex_struct(t reflect.Type) *ReflexType {
 func genreflex_slice(t reflect.Type) *ReflexType {
 	tname := reflect_name2rflx(t)
 	full_name := tname
-	//fmt.Printf("::genreflex_slice[%s]...\n", full_name)
-
+	// full_name = "golang::goslice<double>"
+	// fmt.Printf("::genreflex_slice[%s]...\n", full_name)
+	// {
+	// 	rt := ReflexType_ByName(full_name)
+	// 	fmt.Printf(":: reflect-siz: %d\n", t.Size())
+	// 	fmt.Printf(":: %s-size: %d\n", rt.Name(), rt.SizeOf())
+	// 	fmt.Printf(":: %s-mbrs: %d\n", rt.Name(), rt.DataMemberSize(Reflex_INHERITEDMEMBERS_NO))
+	// 	fmt.Printf("::genreflex_slice[%s]...[done]\n", full_name)
+	// 	return rt
+	// }
 	bldr := NewReflexClassBuilder(
 		//FIXME: generate namespaces for each containing package
 		//       mentionned in 'full_name'
@@ -239,25 +253,24 @@ func genreflex_slice(t reflect.Type) *ReflexType {
 		uint32(Reflex_PUBLIC|Reflex_ARTIFICIAL),
 		Reflex_STRUCT)
 
+	ty_int32_t := ReflexType_ByName("int32_t")
 	offset := uintptr(0)
-	offset += _c_pointer_sz
 	bldr.AddDataMember(
-		ReflexType_ByName("int"),
+		ty_int32_t,
 		"Len",
 		offset,
 		uint32(Reflex_PUBLIC),
 	)
-	offset += _c_int_sz
+	offset += _c_croot_int_sz
 
 	bldr.AddDataMember(
-		ReflexType_ByName("int"),
+		ty_int32_t,
 		"Cap",
 		offset,
 		uint32(Reflex_PUBLIC),
 	)
-	offset += _c_int_sz
+	offset += _c_croot_int_sz
 
-	offset = uintptr(0)
 	bldr.AddDataMember(
 		rflx_type_from(reflect.PtrTo(t.Elem())),
 		"Data",
@@ -293,6 +306,70 @@ func genreflex_slice(t reflect.Type) *ReflexType {
 	// fmt.Printf(":: %s-size: %d\n", rt.Name(), rt.SizeOf())
 	// fmt.Printf(":: %s-mbrs: %d\n", rt.Name(), rt.DataMemberSize(Reflex_INHERITEDMEMBERS_NO))
 	// fmt.Printf("::genreflex_slice[%s]...[done]\n", full_name)
+	return rt
+}
+
+// helper function to create a Reflex::Class-type from a go-string
+func genreflex_string() *ReflexType {
+	tname := "golang::string"
+	full_name := tname
+	//fmt.Printf("::genreflex_string[%s]...\n", full_name)
+
+	bldr := NewReflexClassBuilder(
+		//FIXME: generate namespaces for each containing package
+		//       mentionned in 'full_name'
+		full_name,
+		_c_croot_int_sz+_c_pointer_sz,
+		uint32(Reflex_PUBLIC|Reflex_ARTIFICIAL),
+		Reflex_STRUCT)
+
+	ty_int32_t := ReflexType_ByName("int32_t")
+	offset := uintptr(0)
+	bldr.AddDataMember(
+		ty_int32_t,
+		"Len",
+		offset,
+		uint32(Reflex_PUBLIC),
+	)
+	offset += _c_croot_int_sz
+
+	ty_char := ReflexType_ByName("char")
+	ty_char_p := NewReflexPointerBuilder(ty_char)
+	bldr.AddDataMember(
+		ty_char_p,
+		"Data",
+		offset,
+		uint32(Reflex_PUBLIC),
+	)
+	//bldr.AddProperty("comment", "[Len]")
+
+	ty_void := ReflexType_ByName("void")
+	sz := C.size_t(_c_croot_int_sz + _c_pointer_sz)
+
+	ty_ctor := NewReflexFunctionTypeBuilder(ty_void)
+	stub_fct_ctor := (ReflexStubFunction)(C._get_go_reflex_dummy_ctor_stub())
+	bldr.AddFunctionMember(
+		ty_ctor,
+		tname,
+		stub_fct_ctor,
+		unsafe.Pointer(&sz),
+		uint32(Reflex_PUBLIC|Reflex_CONSTRUCTOR))
+
+	ty_dtor := NewReflexFunctionTypeBuilder(ty_void)
+	stub_fct_dtor := (ReflexStubFunction)(C._get_go_reflex_dummy_dtor_stub())
+	bldr.AddFunctionMember(
+		ty_dtor,
+		"~"+tname,
+		stub_fct_dtor,
+		nil,
+		uint32(Reflex_PUBLIC|Reflex_DESTRUCTOR))
+
+	bldr.Delete()
+	rt := ReflexType_ByName(tname)
+	// fmt.Printf(":: reflect-siz: %d\n", t.Size())
+	// fmt.Printf(":: %s-size: %d\n", rt.Name(), rt.SizeOf())
+	// fmt.Printf(":: %s-mbrs: %d\n", rt.Name(), rt.DataMemberSize(Reflex_INHERITEDMEMBERS_NO))
+	//fmt.Printf("::genreflex_string[%s]...[done]\n", full_name)
 	return rt
 }
 
@@ -368,7 +445,7 @@ func rflx_type_from(t reflect.Type) *ReflexType {
 		rflx = ReflexType_ByName(reflect_name2rflx(t))
 
 	case reflect.String:
-		rflx = ReflexType_ByName("char*")
+		rflx = ReflexType_ByName("golang::string")
 
 	case reflect.Struct:
 		genreflex_struct(t)
@@ -393,6 +470,10 @@ func reflect_name2rflx(t reflect.Type) string {
 	switch t.Kind() {
 	case reflect.Slice:
 		return "golang::slice<" + t.Elem().Name() + ">"
+	case reflect.String:
+		return "golang::string"
+	case reflect.Array:
+		return fmt.Sprintf("%v[%v]", reflect_name2rflx(t.Elem()), t.Len())
 	default:
 		return t.Name()
 	}
