@@ -57,7 +57,7 @@ type Tree interface {
 
 type tree_impl struct {
 	c        C.CRoot_Tree
-	branches map[string]gobranch
+	branches map[string]*gobranch
 }
 
 func (t *tree_impl) cptr() C.CRoot_Object {
@@ -206,7 +206,7 @@ func NewTree(name, title string, splitlevel int) Tree {
 	c_title := C.CString(title)
 	defer C.free(unsafe.Pointer(c_title))
 	t := C.CRoot_Tree_new(c_name, c_title, C.int32_t(splitlevel))
-	b := make(map[string]gobranch)
+	b := make(map[string]*gobranch)
 	return &tree_impl{c: t, branches: b}
 }
 
@@ -228,7 +228,7 @@ func (t *tree_impl) Branch(name string, obj interface{}, bufsiz, splitlevel int)
 	if val.Type().Kind() != reflect.Struct {
 		return nil, fmt.Errorf("croot.Tree.Branch: takes a pointer to a struct (got %v)", ptr.Type())
 	}
-	br := gobranch{v: val, c: cmem.ValueOf(val.Interface())}
+	br := &gobranch{v: val, c: cmem.ValueOf(val.Interface())}
 	// register the type with Reflex
 	genreflex(br.v.Type())
 
@@ -262,7 +262,7 @@ func (t *tree_impl) Branch2(name string, objaddr interface{}, leaflist string, b
 		reflect.Slice:
 		return nil, fmt.Errorf("croot.Tree.Branch: takes a pointer to a builtin (got %v)", ptr.Type())
 	}
-	br := gobranch{v: val, c: cmem.ValueOf(val.Interface())}
+	br := &gobranch{v: val, c: cmem.ValueOf(val.Interface())}
 	// register the type with Reflex
 	genreflex(br.v.Type())
 
@@ -467,7 +467,7 @@ func (t *tree_impl) SetBranchAddress(name string, obj interface{}) int32 {
 		val = reflect.Indirect(ptr)
 	}
 
-	br := gobranch{v: val}
+	br := &gobranch{v: val}
 	typ := br.v.Type()
 	// register the type with Reflex
 	genreflex(typ)

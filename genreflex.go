@@ -323,9 +323,10 @@ func genreflex_string() *ReflexType {
 		uint32(Reflex_PUBLIC|Reflex_ARTIFICIAL),
 		Reflex_STRUCT)
 
+	ty_int32_t := ReflexType_ByName("int32_t")
 	offset := uintptr(0)
 	bldr.AddDataMember(
-		ReflexType_ByName("int"),
+		ty_int32_t,
 		"Len",
 		offset,
 		uint32(Reflex_PUBLIC),
@@ -340,7 +341,7 @@ func genreflex_string() *ReflexType {
 		offset,
 		uint32(Reflex_PUBLIC),
 	)
-	bldr.AddProperty("comment", "[Len]")
+	//bldr.AddProperty("comment", "[Len]")
 
 	ty_void := ReflexType_ByName("void")
 	sz := C.size_t(_c_croot_int_sz + _c_pointer_sz)

@@ -129,7 +129,12 @@ func (v Value) Delete() error {
 		C.free(v.val)
 
 	case String:
-		panic("not implemented")
+		cstr := (*cmem_string)(v.val)
+		cstr.Len = 0
+		if cstr.Data != nil {
+			C.free(cstr.Data)
+		}
+		C.free(v.val)
 
 	case Slice:
 		n := v.Len()
@@ -173,12 +178,10 @@ func (v Value) Cap() int {
 	k := v.Kind()
 	switch k {
 	case Array:
-		//elem_sz := v.typ.Elem().Size()
-		return v.typ.Len() // / int(elem_sz)
+		return v.typ.Len()
 	case Slice:
 		vcap := (*cmem_slice)(v.val).Cap
-		//elem_sz := v.typ.Elem().Size()
-		return int(vcap) // / int(elem_sz)
+		return int(vcap)
 	}
 	panic(&ValueError{"cmem.Value.Cap", k})
 }
@@ -305,8 +308,14 @@ func (v Value) GoValue() reflect.Value {
 
 	case reflect.String:
 		cstr := (*cmem_string)(v.val)
-		s := C.GoStringN((*C.char)(cstr.Data), C.int(cstr.Len))
-		rv.Set(reflect.ValueOf(s))
+		if cstr.Data != nil && cstr.Len != 0 {
+			s := C.GoString((*C.char)(cstr.Data))
+			rv.Set(reflect.ValueOf(s))
+		} else {
+			rv.Set(reflect.ValueOf(""))
+		}
+		// s := C.GoStringN((*C.char)(cstr.Data), C.int(cstr.Len))
+		// rv.Set(reflect.ValueOf(s))
 
 	default:
 		panic("cmem.Value.GoValue: unhandled kind [" + rt.Kind().String() + "]")
@@ -396,9 +405,7 @@ func (v Value) Len() int {
 		return int(tt.Len())
 	case Slice:
 		vlen := (*cmem_slice)(v.val).Len
-		//elem_sz := v.typ.Elem().Size()
-		//fmt.Printf("::: type[%v] vlen=%v elem_sz=%v\n", v.typ.Name(), vlen, elem_sz)
-		return int(vlen) // / int(elem_sz)
+		return int(vlen)
 	case String:
 		vlen := (*cmem_string)(v.val).Len
 		return int(vlen)
@@ -484,21 +491,17 @@ func (v *Value) set_value(x reflect.Value) {
 
 	case reflect.String:
 		str := x.String()
-		gostr := C.CString(str)
-		defer C.free(unsafe.Pointer(gostr))
 		cstr := (*cmem_slice)(v.val)
 		cstr.Len = croot_int(len(str))
-		if cstr.Data == nil {
-			cstr.Data = unsafe.Pointer(C.malloc(C.size_t(len(str)+1) * C.size_t(unsafe.Sizeof((*byte)(nil)))))
-			fmt.Printf("nil string\n")
+		if str == "" {
+			cstr.Data = nil
+		} else {
+			gostr := C.CString(str)
+			if cstr.Data != nil {
+				C.free(cstr.Data)
+			}
+			cstr.Data = unsafe.Pointer(gostr)
 		}
-		if cstr.Data != nil {
-			C.free(cstr.Data)
-		}
-		C.strcpy((*C.char)(cstr.Data), gostr)
-		fmt.Printf("go-str: %q (%v)\n", x.Interface(), len(str))
-		fmt.Printf("go-str: %q (%v)\n", str, len(str))
-		fmt.Printf("c-str:  len=%v ptr=0x%x\n", cstr.Len, cstr.Data)
 
 	default:
 		panic("cmem.Value.SetValue: unhandled kind [" + rt.Kind().String() + "]")
@@ -744,9 +747,7 @@ func ValueOf(i interface{}) Value {
 		v.SetValue(rv)
 
 	case reflect.String:
-		ct := ctype_from_gotype(rt)
-		v = New(ct)
-		v.SetValue(rv)
+		v = make_cstring(rv)
 
 	case reflect.Slice:
 		ct := ctype_from_gotype(rt)
@@ -784,15 +785,25 @@ func MakeSlice(typ Type, vlen, vcap int) Value {
 		Cap:  croot_int(vcap), //slice_cap,
 		Data: nil,
 	}
-	x.Cap = x.Len // FIXME ??
-	x.Data = C.calloc(C.size_t(vlen), C.size_t(typ.Elem().Size()))
-
-	// Reinterpret as *SliceHeader to edit.
-	//s := (*reflect.SliceHeader)(unsafe.Pointer(&x))
-	//s.Len = vlen
-	//s.Cap = vcap
+	x.Cap = x.Len
+	x.Data = C.calloc(C.size_t(x.Cap), C.size_t(typ.Elem().Size()))
+	x.Data = C.memset(x.Data, 0, C.size_t(x.Cap)*C.size_t(typ.Elem().Size()))
 
 	return Value{typ, unsafe.Pointer(x)}
+}
+
+func make_cstring(rv reflect.Value) Value {
+	rt := rv.Type()
+	if rt.Kind() != reflect.String {
+		panic("cmem.make_string from a non-string type")
+	}
+	str := rv.String()
+	x := &cmem_string{
+		Len:  croot_int(len(str)),
+		Data: nil,
+	}
+	x.Data = unsafe.Pointer(C.CString(str))
+	return Value{C_string, unsafe.Pointer(x)}
 }
 
 // grow_slice grows the slice s so that it can hold extra more values,

@@ -195,27 +195,29 @@ func (t *cmem_type) set_gotype(rt reflect.Type) {
 }
 
 var (
-	C_void       Type = &cmem_type{"void", Void, nil}
-	C_uchar           = &cmem_type{"unsigned char", Uint8, reflect.TypeOf(uint8(0))}
-	C_char            = &cmem_type{"char", Int8, reflect.TypeOf(int8(0))}
-	C_ushort          = &cmem_type{"unsigned short", Uint16, reflect.TypeOf(uint16(0))}
-	C_short           = &cmem_type{"short", Int16, reflect.TypeOf(int16(0))}
-	C_uint            = &cmem_type{"unsigned int", Uint, reflect.TypeOf(uint(0))}
-	C_int             = &cmem_type{"int", Int, reflect.TypeOf(int(0))}
-	C_ulong           = &cmem_type{"unsigned long", Uint16, reflect.TypeOf(uint64(0))}
-	C_long            = &cmem_type{"long", Int16, reflect.TypeOf(int64(0))}
-	C_uint8           = &cmem_type{"uint8", Uint8, reflect.TypeOf(uint8(0))}
-	C_int8            = &cmem_type{"int8", Int8, reflect.TypeOf(int8(0))}
-	C_uint16          = &cmem_type{"uint16", Uint16, reflect.TypeOf(uint16(0))}
-	C_int16           = &cmem_type{"int16", Int16, reflect.TypeOf(int16(0))}
-	C_uint32          = &cmem_type{"uint32", Uint32, reflect.TypeOf(uint32(0))}
-	C_int32           = &cmem_type{"int32", Int32, reflect.TypeOf(int32(0))}
-	C_uint64          = &cmem_type{"uint64", Uint64, reflect.TypeOf(uint64(0))}
-	C_int64           = &cmem_type{"int64", Int64, reflect.TypeOf(int64(0))}
-	C_float           = &cmem_type{"float", Float, reflect.TypeOf(float32(0.))}
-	C_double          = &cmem_type{"double", Double, reflect.TypeOf(float64(0.))}
-	C_longdouble      = &cmem_type{"long double", LongDouble, nil}
-	C_pointer         = &cmem_ptr_type{
+	C_void   Type = &cmem_type{"void", Void, nil}
+	C_uchar       = &cmem_type{"unsigned char", Uint8, reflect.TypeOf(uint8(0))}
+	C_char        = &cmem_type{"char", Int8, reflect.TypeOf(int8(0))}
+	C_ushort      = &cmem_type{"unsigned short", Uint16, reflect.TypeOf(uint16(0))}
+	C_short       = &cmem_type{"short", Int16, reflect.TypeOf(int16(0))}
+	C_uint        = &cmem_type{"unsigned int", Uint, reflect.TypeOf(uint(0))}
+	C_int         = &cmem_type{"int", Int, reflect.TypeOf(int(0))}
+	C_ulong       = &cmem_type{"unsigned long", Uint16, reflect.TypeOf(uint64(0))}
+	C_long        = &cmem_type{"long", Int16, reflect.TypeOf(int64(0))}
+	C_uint8       = &cmem_type{"uint8", Uint8, reflect.TypeOf(uint8(0))}
+	C_int8        = &cmem_type{"int8", Int8, reflect.TypeOf(int8(0))}
+	C_uint16      = &cmem_type{"uint16", Uint16, reflect.TypeOf(uint16(0))}
+	C_int16       = &cmem_type{"int16", Int16, reflect.TypeOf(int16(0))}
+	C_uint32      = &cmem_type{"uint32", Uint32, reflect.TypeOf(uint32(0))}
+	C_int32       = &cmem_type{"int32", Int32, reflect.TypeOf(int32(0))}
+	C_uint64      = &cmem_type{"uint64", Uint64, reflect.TypeOf(uint64(0))}
+	C_int64       = &cmem_type{"int64", Int64, reflect.TypeOf(int64(0))}
+	C_float       = &cmem_type{"float", Float, reflect.TypeOf(float32(0.))}
+	C_double      = &cmem_type{"double", Double, reflect.TypeOf(float64(0.))}
+
+	//C_longdouble = &cmem_type{"long double", LongDouble, reflect.TypeOf(float128(0))}
+
+	C_pointer = &cmem_ptr_type{
 		cmem_type: cmem_type{"*", Ptr, reflect.TypeOf(nil)},
 		elem:      nil,
 	}
@@ -369,12 +371,6 @@ func NewPointerType(typ reflect.Type) (Type, error) {
 
 	register_type(t)
 	return t, nil
-}
-
-type cmem_slice_header struct {
-	Len  croot_int
-	Cap  croot_int
-	Data unsafe.Pointer
 }
 
 type cmem_slice_type struct {
@@ -572,8 +568,10 @@ func init() {
 	init_type(C_int64)
 	init_type(C_float)
 	init_type(C_double)
-	init_type(C_longdouble)
+	//init_type(C_longdouble)
 	init_type(C_pointer)
+
+	init_type(C_string)
 
 }
 

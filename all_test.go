@@ -39,15 +39,6 @@ type DataString struct {
 	String string
 }
 
-type Cluster struct {
-	Cells []Cell
-}
-
-type Cell struct {
-	Pos [3]float64
-	Ene float64
-}
-
 func TestTreeBuiltinsRW(t *testing.T) {
 	const fname = "simple-event.root"
 	const evtmax = 10000
@@ -309,7 +300,7 @@ func TestTreeStructRW(t *testing.T) {
 
 func TestTreeStructSlice(t *testing.T) {
 	const fname = "struct-slice.root"
-	const evtmax = 10000
+	const evtmax = 10
 	const splitlevel = 32
 	const bufsiz = 32000
 	const compress = 1
@@ -414,7 +405,7 @@ func TestTreeStructSlice(t *testing.T) {
 					e.Slice[0], e.Data)
 			}
 			if e.Slice[1] != -e.Data {
-				t.Errorf("invalid e.Slice[0] value: %v (expected %v)",
+				t.Errorf("invalid e.Slice[1] value: %v (expected %v)",
 					e.Slice[1], -e.Data)
 			}
 			if iev != e.I {

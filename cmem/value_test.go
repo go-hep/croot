@@ -552,6 +552,15 @@ func TestValueOf(t *testing.T) {
 		}
 	}
 	{
+		for _, v := range []string{
+			"abcd",
+			"1234",
+		} {
+			eq(t, string(v), cmem.ValueOf(v).GoValue().String())
+			eq(t, len(v), cmem.ValueOf(v).GoValue().Len())
+		}
+	}
+	{
 		const val = 42
 		ctyp, err := cmem.NewStructType(reflect.TypeOf(struct_ints{}))
 		if err != nil {

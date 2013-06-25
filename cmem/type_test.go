@@ -44,6 +44,8 @@ func TestBuiltinTypes(t *testing.T) {
 		//{"long double", cmem.C_longdouble, reflect.TypeOf(complex128(0))},
 
 		{"*", cmem.C_pointer, reflect.TypeOf((*int)(nil))},
+
+		{"char*", cmem.C_string, reflect.TypeOf("")},
 	} {
 		if table.n != table.t.Name() {
 			t.Errorf("expected [%s], got [%s]", table.n, table.t.Name())
@@ -70,6 +72,10 @@ type struct_2 struct {
 	F4 uint8
 }
 
+type struct_3 struct {
+	F1 string
+}
+
 func TestNewStructType(t *testing.T) {
 
 	arr10, err := cmem.NewArrayType(reflect.TypeOf([10]int32{}))
@@ -82,6 +88,7 @@ func TestNewStructType(t *testing.T) {
 		reflect.TypeOf(struct_0{}),
 		reflect.TypeOf(struct_1{}),
 		reflect.TypeOf(struct_2{}),
+		reflect.TypeOf(struct_3{}),
 		//FIXME: 32b/64b alignement differ!!
 		// make 2 tests!
 		// {"struct_3",
@@ -150,6 +157,8 @@ func TestNewArrayType(t *testing.T) {
 		{"float[10]", 10, cmem.C_float, reflect.TypeOf([10]float32{})},
 		{"double[10]", 10, cmem.C_double, reflect.TypeOf([10]float64{})},
 
+		{"char*[10]", 10, cmem.C_string, reflect.TypeOf([10]string{})},
+
 		{"s_0[10]", 10, s_t, reflect.TypeOf([10]s_0{})},
 		{"s_0*[10]", 10, p_s_t, reflect.TypeOf([10]*s_0{})},
 	} {
@@ -195,6 +204,8 @@ func TestNewSliceType(t *testing.T) {
 
 		{"float[]", cmem.C_float, reflect.TypeOf([]float32{})},
 		{"double[]", cmem.C_double, reflect.TypeOf([]float64{})},
+
+		{"char*[]", cmem.C_string, reflect.TypeOf([]string{})},
 
 		{"s_0[]", s_t, reflect.TypeOf([]s_0{})},
 		{"s_0*[]", p_s_t, reflect.TypeOf([]*s_0{})},

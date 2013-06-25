@@ -84,6 +84,7 @@ cxx-lib: dirs $(cxx_croot_objects)
 	 $(cxx_croot_objects)
 
 test: install
+	@$(test_cmd) ./cmem
 	@$(test_cmd) .
 
 clean:
