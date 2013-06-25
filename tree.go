@@ -281,27 +281,7 @@ func (t *tree_impl) Branch2(name string, objaddr interface{}, leaflist string, b
 func (t *tree_impl) Fill() (int, error) {
 	// fmt.Printf("=== fill ===...\n")
 	for _, br := range t.branches {
-		// fmt.Printf("branch[%s]: %v (%p) (%p)\n", n, br.v.Interface(),
-		// 	unsafe.Pointer(br.v.UnsafeAddr()),
-		// 	unsafe.Pointer(br.c.UnsafeAddr()))
 		br.c.SetValue(br.v)
-		// fmt.Printf("branch[%s]: %v (%p) (%p) --> %v\n", n, br.v.Interface(),
-		// 	unsafe.Pointer(br.v.UnsafeAddr()),
-		// 	unsafe.Pointer(br.c.UnsafeAddr()),
-		// 	br.c.GoValue().Interface())
-		// if br.v.Type().Name() == "DataString" {
-		// 	type cgo_string struct {
-		// 		Len  int32
-		// 		Data unsafe.Pointer
-		// 	}
-		// 	cstr := (*cgo_string)(unsafe.Pointer(br.c.UnsafeAddr() + unsafe.Sizeof(int64(0)) + unsafe.Sizeof(float64(0))))
-		// 	fmt.Printf("cstr-len: %v\n", cstr.Len)
-		// 	fmt.Printf("cstr-ptr: 0x%x\n", cstr.Data)
-		// 	gostr := C.GoStringN((*C.char)(cstr.Data), C.int(cstr.Len))
-		// 	fmt.Printf("gostr:    %q\n", gostr)
-		// 	ptr := br.get_c_branch(t, n)
-		// 	fmt.Printf("br-ptr:  0x%x\n", ptr)
-		// }
 	}
 	nb := int(C.CRoot_Tree_Fill(t.c))
 	// fmt.Printf("=== fill ===... [done]\n")
