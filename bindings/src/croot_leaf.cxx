@@ -37,6 +37,12 @@ CRoot_Leaf_GetValuePointer(CRoot_Leaf self)
   return ((TLeaf*)self)->GetValuePointer();
 }
 
+void
+CRoot_Leaf_SetAddress(CRoot_Leaf self,void* addr)
+{
+  ((TLeaf*)self)->SetAddress(addr);
+}
+
 /* TLeafI */
 double
 CRoot_LeafI_GetValue(CRoot_LeafI self, int idx)

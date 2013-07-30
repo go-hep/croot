@@ -16,6 +16,7 @@ type Leaf interface {
 	GetLeafCount() Leaf
 	GetTypeName() string
 	GetValuePointer() uintptr
+	SetAddress(addr unsafe.Pointer)
 }
 
 type leaf_impl struct {
@@ -86,6 +87,10 @@ func (l *leaf_impl) GetTypeName() string {
 func (l *leaf_impl) GetValuePointer() uintptr {
 	ptr := C.CRoot_Leaf_GetValuePointer(l.c)
 	return uintptr(ptr)
+}
+
+func (l *leaf_impl) SetAddress(addr unsafe.Pointer) {
+	C.CRoot_Leaf_SetAddress(l.c, addr)
 }
 
 // LeafI

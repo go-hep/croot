@@ -27,6 +27,10 @@ CROOT_API
 void*
 CRoot_Leaf_GetValuePointer(CRoot_Leaf self);
 
+CROOT_API
+void
+CRoot_Leaf_SetAddress(CRoot_Leaf self, void* addr);
+
 /* TLeafI */
 
 CROOT_API
