@@ -13,10 +13,10 @@ INSTALL_DIR := $(firstword $(subst :, ,$(shell go env GOPATH)))/pkg/$(GOOS)_$(GO
 INSTALL_LIBDIR := $(INSTALL_DIR)/github.com/go-hep/croot/_lib
 
 ifeq ($(GOOS),linux)
-CGO_LDFLAGS := "-Wl,-rpath,$(INSTALL_LIBDIR) -L$(INSTALL_LIBDIR) -lcxx-croot"
+CGO_LDFLAGS := "-Wl,-rpath,$(INSTALL_LIBDIR) -L$(INSTALL_LIBDIR) -lcxx-croot $(ROOT_LDFLAGS)"
 endif
 ifeq ($(GOOS),darwin)
-CGO_LDFLAGS := "-L$(INSTALL_LIBDIR) -lcxx-croot"
+CGO_LDFLAGS := "-L$(INSTALL_LIBDIR) -lcxx-croot $(ROOT_LDFLAGS)"
 endif
 CGO_CFLAGS  := "-Ibindings/inc -I."
 
