@@ -212,6 +212,10 @@ func (t *ReflexType) DataMemberSize(query Reflex_EMEMBERQUERY) int {
 	return int(sz)
 }
 
+func (t *ReflexType) HasBase(base *ReflexType) bool {
+	return bool(C.CRoot_Reflex_Type_HasBase(t.t, base.t))
+}
+
 func (t *ReflexType) IsAbstract() bool {
 	return bool(C.CRoot_Reflex_Type_IsAbstract(t.t))
 }

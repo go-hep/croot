@@ -189,6 +189,10 @@ CRoot_Reflex_Type_DataMemberSize(CRoot_Reflex_Type self,
 
 CROOT_API
 bool
+CRoot_Reflex_Type_HasBase(CRoot_Reflex_Type self, CRoot_Reflex_Type base);
+
+CROOT_API
+bool
 CRoot_Reflex_Type_IsAbstract(CRoot_Reflex_Type self);
 
 CROOT_API

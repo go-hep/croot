@@ -859,6 +859,12 @@ CRoot_Reflex_Type_DataMemberSize(CRoot_Reflex_Type self,
 
 
 bool
+CRoot_Reflex_Type_HasBase(CRoot_Reflex_Type self, CRoot_Reflex_Type base)
+{
+  return ((Reflex::Type*)self)->HasBase(*((Reflex::Type*)base));
+}
+
+bool
 CRoot_Reflex_Type_IsAbstract(CRoot_Reflex_Type self)
 {
   return ((Reflex::Type*)self)->IsAbstract();
