@@ -161,6 +161,14 @@ func TestNewArrayType(t *testing.T) {
 
 		{"s_0[10]", 10, s_t, reflect.TypeOf([10]s_0{})},
 		{"s_0*[10]", 10, p_s_t, reflect.TypeOf([10]*s_0{})},
+
+		// 2-d arrays
+		{"uint8[10][2]", 10, cmem.TypeOf(reflect.TypeOf([2]uint8{})), reflect.TypeOf([10][2]uint8{})},
+		{"double[10][2]", 10, cmem.TypeOf(reflect.TypeOf([2]float64{})), reflect.TypeOf([10][2]float64{})},
+
+		// 3-d arrays
+		{"uint8[10][2][3]", 10, cmem.TypeOf(reflect.TypeOf([2][3]uint8{})), reflect.TypeOf([10][2][3]uint8{})},
+		{"double[10][2][3]", 10, cmem.TypeOf(reflect.TypeOf([2][3]float64{})), reflect.TypeOf([10][2][3]float64{})},
 	} {
 		typ, err := cmem.NewArrayType(table.rtype)
 		if err != nil {

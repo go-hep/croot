@@ -3,6 +3,7 @@ package cmem
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"unsafe"
 )
 
@@ -326,7 +327,20 @@ func NewArrayType(typ reflect.Type) (Type, error) {
 	}
 
 	elmt := ctype_from_gotype(typ.Elem())
-	n := fmt.Sprintf("%s[%d]", elmt.Name(), typ.Len())
+	n := ""
+	switch elmt.Kind() {
+	case Array:
+		nn := strings.Split(elmt.Name(), "[")
+		etyp := nn[0]
+		edims := make([]string, 0, len(nn)-1)
+		for _, v := range nn[1:] {
+			edims = append(edims, "["+v)
+		}
+		n = fmt.Sprintf("%s[%d]%s", etyp, typ.Len(), strings.Join(edims, ""))
+	default:
+		n = fmt.Sprintf("%s[%d]", elmt.Name(), typ.Len())
+	}
+
 	if t := TypeByName(n); t != nil {
 		return t, nil
 	}
