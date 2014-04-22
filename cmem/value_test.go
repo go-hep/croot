@@ -192,6 +192,154 @@ func TestGetSetArrayValue(t *testing.T) {
 
 }
 
+func TestGetSet2dArrayValue(t *testing.T) {
+
+	{
+		const val = 42
+		for _, tt := range []struct {
+			n    string
+			len1 int
+			len2 int
+			t    cmem.Type
+			val  interface{}
+		}{
+			{"uint8[10][2]", 10, 2, cmem.TypeOf(reflect.TypeOf([2]uint8{})), [10][2]uint8{}},
+			{"uint16[10][2]", 10, 2, cmem.TypeOf(reflect.TypeOf([2]uint16{})), [10][2]uint16{}},
+			{"uint32[10][2]", 10, 2, cmem.TypeOf(reflect.TypeOf([2]uint32{})), [10][2]uint32{}},
+			{"uint64[10][2]", 10, 2, cmem.TypeOf(reflect.TypeOf([2]uint64{})), [10][2]uint64{}},
+		} {
+			ctyp, err := cmem.NewArrayType(reflect.ValueOf(tt.val).Type())
+			if err != nil {
+				t.Errorf(err.Error())
+			}
+			cval := cmem.New(ctyp)
+			eq(t, tt.n, cval.Type().Name())
+			eq(t, ctyp.Kind(), cval.Kind())
+			gtyp := reflect.TypeOf(tt.val)
+			gval := reflect.New(gtyp).Elem()
+			eq(t, gval.Len(), cval.Len())
+			for i := 0; i < gval.Len(); i++ {
+				for j := 0; j < gval.Index(0).Len(); j++ {
+					eq(t, gval.Index(i).Index(j).Uint(), cval.Index(i).Index(j).Uint())
+					gval.Index(i).Index(j).SetUint(val)
+					cval.Index(i).Index(j).SetUint(val)
+					eq(t, gval.Index(i).Index(j).Uint(), cval.Index(i).Index(j).Uint())
+				}
+			}
+		}
+	}
+
+	{
+		const val = 42
+		for _, tt := range []struct {
+			n    string
+			len1 int
+			len2 int
+			t    cmem.Type
+			val  interface{}
+		}{
+			{"int8[10][2]", 10, 2, cmem.TypeOf(reflect.TypeOf([2]int8{})), [10][2]int8{}},
+			{"int16[10][2]", 10, 2, cmem.TypeOf(reflect.TypeOf([2]int16{})), [10][2]int16{}},
+			{"int32[10][2]", 10, 2, cmem.TypeOf(reflect.TypeOf([2]int32{})), [10][2]int32{}},
+			{"int64[10][2]", 10, 2, cmem.TypeOf(reflect.TypeOf([2]int64{})), [10][2]int64{}},
+		} {
+			ctyp, err := cmem.NewArrayType(reflect.ValueOf(tt.val).Type())
+			if err != nil {
+				t.Errorf(err.Error())
+			}
+			cval := cmem.New(ctyp)
+			eq(t, tt.n, cval.Type().Name())
+			eq(t, ctyp.Kind(), cval.Kind())
+			gtyp := reflect.TypeOf(tt.val)
+			gval := reflect.New(gtyp).Elem()
+			eq(t, gval.Len(), cval.Len())
+			for i := 0; i < gval.Len(); i++ {
+				for j := 0; j < gval.Index(0).Len(); j++ {
+					eq(t, gval.Index(i).Index(j).Int(), cval.Index(i).Index(j).Int())
+					gval.Index(i).Index(j).SetInt(val)
+					cval.Index(i).Index(j).SetInt(val)
+					eq(t, gval.Index(i).Index(j).Int(), cval.Index(i).Index(j).Int())
+				}
+			}
+		}
+	}
+
+	{
+		const val = -66.2
+		for _, tt := range []struct {
+			n    string
+			len1 int
+			len2 int
+			t    cmem.Type
+			val  interface{}
+		}{
+			{"float[10][2]", 10, 2, cmem.TypeOf(reflect.TypeOf([2]float32{})), [10][2]float32{}},
+			{"double[10][2]", 10, 2, cmem.TypeOf(reflect.TypeOf([2]float64{})), [10][2]float64{}},
+			// FIXME: go has no long double equivalent
+			//{"long double[10][2]", 10, 2, cmem.TypeOf(reflect.TypeOf([2]float128{})), [10][2float128{}},
+		} {
+			ctyp, err := cmem.NewArrayType(reflect.ValueOf(tt.val).Type())
+			if err != nil {
+				t.Errorf(err.Error())
+			}
+			cval := cmem.New(ctyp)
+			eq(t, tt.n, cval.Type().Name())
+			eq(t, ctyp.Kind(), cval.Kind())
+			gtyp := reflect.TypeOf(tt.val)
+			gval := reflect.New(gtyp).Elem()
+			eq(t, gval.Len(), cval.Len())
+			for i := 0; i < gval.Len(); i++ {
+				for j := 0; j < gval.Index(0).Len(); j++ {
+					eq(t, gval.Index(i).Index(j).Float(), cval.Index(i).Index(j).Float())
+					gval.Index(i).Index(j).SetFloat(val)
+					cval.Index(i).Index(j).SetFloat(val)
+					eq(t, gval.Index(i).Index(j).Float(), cval.Index(i).Index(j).Float())
+				}
+			}
+		}
+	}
+
+	{
+		const val = -66.2
+		for _, tt := range []struct {
+			n    string
+			len1 int
+			len2 int
+			t    cmem.Type
+			val  interface{}
+		}{
+			{"float[10][2]", 10, 2, cmem.TypeOf(reflect.TypeOf([2]float32{})), [10][2]float32{}},
+			{"double[10][2]", 10, 2, cmem.TypeOf(reflect.TypeOf([2]float64{})), [10][2]float64{}},
+			// FIXME: go has no long double equivalent
+			//{"long double[10][2]", 10, 2, cmem.TypeOf(reflect.TypeOf([2]float128{})), [10][2float128{}},
+		} {
+			ctyp, err := cmem.NewArrayType(reflect.ValueOf(tt.val).Type())
+			if err != nil {
+				t.Errorf(err.Error())
+			}
+			cval := cmem.New(ctyp)
+			eq(t, tt.n, cval.Type().Name())
+			eq(t, ctyp.Kind(), cval.Kind())
+			gtyp := reflect.TypeOf(tt.val)
+			gval := reflect.New(gtyp).Elem()
+			eq(t, gval.Len(), cval.Len())
+			for i := 0; i < gval.Len(); i++ {
+				for j := 0; j < gval.Index(0).Len(); j++ {
+					gval.Index(i).Index(j).SetFloat(val)
+				}
+			}
+			cval.SetValue(gval)
+
+			for i := 0; i < gval.Len(); i++ {
+				for j := 0; j < gval.Index(0).Len(); j++ {
+					eq(t, gval.Index(i).Index(j).Float(), cval.Index(i).Index(j).Float())
+				}
+			}
+		}
+	}
+
+}
+
 type struct_ssv struct {
 	F1 uint16
 	F2 [10]int32
