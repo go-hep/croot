@@ -163,7 +163,6 @@ func (br *gobranch) get_c_branch(t *tree_impl, name string) unsafe.Pointer {
 		if 1 < c_len_static || c_leaf_count != nil {
 			// c_n_data := int(C.CRoot_Leaf_GetNdata(c_leaf))
 			ptr = unsafe.Pointer(C.CRoot_Leaf_GetValuePointer(c_leaf))
-			panic("not implemented")
 			return ptr
 		}
 
@@ -252,15 +251,15 @@ func (t *tree_impl) Branch2(name string, objaddr interface{}, leaflist string, b
 
 	ptr := reflect.ValueOf(objaddr)
 	if ptr.Type().Kind() != reflect.Ptr {
-		return nil, fmt.Errorf("croot.Tree.Branch: takes a pointer to a builtin (got %v)", ptr.Type())
+		return nil, fmt.Errorf("croot.Tree.Branch2: takes a pointer to a builtin (got %v)", ptr.Type())
 	}
 	val := reflect.Indirect(ptr)
 	switch k := val.Type().Kind(); k {
 	default:
 		// ok.
-	case reflect.Ptr, reflect.Struct, reflect.String, reflect.Array,
+	case reflect.Ptr, reflect.Struct, reflect.String,
 		reflect.Slice:
-		return nil, fmt.Errorf("croot.Tree.Branch: takes a pointer to a builtin (got %v)", ptr.Type())
+		return nil, fmt.Errorf("croot.Tree.Branch2: takes a pointer to a builtin (got %v)", ptr.Type())
 	}
 	br := &gobranch{v: val, c: cmem.ValueOf(val.Interface())}
 	// register the type with Reflex
