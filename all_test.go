@@ -16,9 +16,11 @@ type Det struct {
 }
 
 type Event struct {
-	I int64
-	A Det
-	B Det
+	I      int64
+	A      Det
+	B      Det
+	ArrayI [2]int64
+	ArrayD [2]float64
 }
 
 type DataSlice struct {
@@ -90,6 +92,16 @@ func TestTreeBuiltinsRW(t *testing.T) {
 			t.Errorf(err.Error())
 		}
 
+		_, err = tree.Branch2("evt_arrI", &e.ArrayI, "evt_arrI[2]/L", bufsiz)
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+
+		_, err = tree.Branch2("evt_arrD", &e.ArrayD, "evt_arrD[2]/D", bufsiz)
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+
 		// initialize our source of random numbers...
 		src := rand.New(rand.NewSource(1))
 
@@ -109,12 +121,19 @@ func TestTreeBuiltinsRW(t *testing.T) {
 			// e.A.Fs = []float64{e.A.E, e.A.T}
 			// e.B.Fs = []float64{e.B.E, e.B.T}
 
+			e.ArrayI[0] = iev
+			e.ArrayI[1] = -iev
+			e.ArrayD[0] = e.A.T
+			e.ArrayD[1] = e.B.T
+
 			if iev%1000 == 0 {
 				add(fmt.Sprintf("evt.i=   %8d\n", e.I))
 				add(fmt.Sprintf("evt.a.e= %8.3f\n", e.A.E))
 				add(fmt.Sprintf("evt.a.t= %8.3f\n", e.A.T))
 				add(fmt.Sprintf("evt.b.e= %8.3f\n", e.B.E))
 				add(fmt.Sprintf("evt.b.t= %8.3f\n", e.B.T))
+				add(fmt.Sprintf("evt.arrI= %8d %8d\n", e.ArrayI[0], e.ArrayI[1]))
+				add(fmt.Sprintf("evt.arrD= %8.3f %8.3fd\n", e.ArrayD[0], e.ArrayD[1]))
 			}
 			_, err = tree.Fill()
 			if err != nil {
@@ -148,6 +167,8 @@ func TestTreeBuiltinsRW(t *testing.T) {
 		tree.SetBranchAddress("evt_a_t", &e.A.T)
 		tree.SetBranchAddress("evt_b_e", &e.B.E)
 		tree.SetBranchAddress("evt_b_t", &e.B.T)
+		tree.SetBranchAddress("evt_arrI", &e.ArrayI)
+		tree.SetBranchAddress("evt_arrD", &e.ArrayD)
 
 		// read events
 		for iev := int64(0); iev != evtmax; iev++ {
@@ -163,6 +184,8 @@ func TestTreeBuiltinsRW(t *testing.T) {
 				add(fmt.Sprintf("evt.a.t= %8.3f\n", e.A.T))
 				add(fmt.Sprintf("evt.b.e= %8.3f\n", e.B.E))
 				add(fmt.Sprintf("evt.b.t= %8.3f\n", e.B.T))
+				add(fmt.Sprintf("evt.arrI= %8d %8d\n", e.ArrayI[0], e.ArrayI[1]))
+				add(fmt.Sprintf("evt.arrD= %8.3f %8.3fd\n", e.ArrayD[0], e.ArrayD[1]))
 			}
 
 			if iev != e.I {
