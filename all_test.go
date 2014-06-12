@@ -252,12 +252,19 @@ func TestTreeStructRW(t *testing.T) {
 			e.A.T = src.Float64()
 			e.B.T = e.A.T * (src.NormFloat64()*1. + 0.)
 
+			e.ArrayI[0] = iev
+			e.ArrayI[1] = -iev
+			e.ArrayD[0] = e.A.T
+			e.ArrayD[1] = e.B.T
+
 			if iev%1000 == 0 {
 				add(fmt.Sprintf("evt.i=   %8d\n", e.I))
 				add(fmt.Sprintf("evt.a.e= %8.3f\n", e.A.E))
 				add(fmt.Sprintf("evt.a.t= %8.3f\n", e.A.T))
 				add(fmt.Sprintf("evt.b.e= %8.3f\n", e.B.E))
 				add(fmt.Sprintf("evt.b.t= %8.3f\n", e.B.T))
+				add(fmt.Sprintf("evt.arrI= %8d %8d\n", e.ArrayI[0], e.ArrayI[1]))
+				add(fmt.Sprintf("evt.arrD= %8.3f %8.3fd\n", e.ArrayD[0], e.ArrayD[1]))
 			}
 			_, err = tree.Fill()
 			if err != nil {
@@ -302,6 +309,8 @@ func TestTreeStructRW(t *testing.T) {
 				add(fmt.Sprintf("evt.a.t= %8.3f\n", e.A.T))
 				add(fmt.Sprintf("evt.b.e= %8.3f\n", e.B.E))
 				add(fmt.Sprintf("evt.b.t= %8.3f\n", e.B.T))
+				add(fmt.Sprintf("evt.arrI= %8d %8d\n", e.ArrayI[0], e.ArrayI[1]))
+				add(fmt.Sprintf("evt.arrD= %8.3f %8.3fd\n", e.ArrayD[0], e.ArrayD[1]))
 			}
 
 			if iev != e.I {
