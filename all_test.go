@@ -413,6 +413,9 @@ func TestTreeStructSlice(t *testing.T) {
 			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
 		}
 
+		// initialize our source of random numbers...
+		src := rand.New(rand.NewSource(1))
+
 		var e DataSlice
 		e.Slice = make([]float64, 0, 2)
 		tree.SetBranchAddress("evt", &e)
@@ -444,6 +447,16 @@ func TestTreeStructSlice(t *testing.T) {
 			}
 			if iev != e.I {
 				t.Fatalf("invalid event number. expected %v, got %v", iev, e.I)
+			}
+
+			data := src.NormFloat64()
+			exp := DataSlice{
+				I:     iev,
+				Data:  data,
+				Slice: []float64{data, -data},
+			}
+			if !reflect.DeepEqual(e, exp) {
+				t.Errorf("invalid data value.\nexp=%#v\ngot=%#v\n", exp, e)
 			}
 		}
 		f.Close("")
