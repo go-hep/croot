@@ -30,9 +30,11 @@ type DataSlice struct {
 }
 
 type DataArray struct {
-	I     int64
-	Data  float64
-	Array [2]float64
+	I      int64
+	Data   float64
+	Array  [2]float64
+	NdArrI [2][2]int64
+	NdArrF [2][2]float64
 }
 
 type DataString struct {
@@ -501,6 +503,14 @@ func TestTreeStructArray(t *testing.T) {
 
 			e.Array[0] = e.Data
 			e.Array[1] = -e.Data
+			e.NdArrI[0][0] = iev
+			e.NdArrI[0][1] = -iev
+			e.NdArrI[1][0] = -iev
+			e.NdArrI[1][1] = iev
+			e.NdArrF[0][0] = e.Data
+			e.NdArrF[0][1] = -e.Data
+			e.NdArrF[1][0] = -e.Data
+			e.NdArrF[1][1] = e.Data
 
 			if len(e.Array) != 2 {
 				t.Errorf("invalid e.Array size: %v (expected 2)", len(e.Array))
@@ -510,6 +520,9 @@ func TestTreeStructArray(t *testing.T) {
 				add(fmt.Sprintf("evt.i=     %8d\n", e.I))
 				add(fmt.Sprintf("evt.d=     %8.3f\n", e.Data))
 				add(fmt.Sprintf("evt.array= %8.3f %8.3f\n", e.Array[0], e.Array[1]))
+				add(fmt.Sprintf("evt.ndarri=%8d %8d %8d %8d\n", e.NdArrI[0][0], e.NdArrI[0][1], e.NdArrI[1][0], e.NdArrI[1][1]))
+				add(fmt.Sprintf("evt.ndarrf=%8.3f %8.3f %8.3f %8.3f\n", e.NdArrF[0][0], e.NdArrF[0][1], e.NdArrF[1][0], e.NdArrF[1][1]))
+
 			}
 			_, err = tree.Fill()
 			if err != nil {
@@ -552,6 +565,8 @@ func TestTreeStructArray(t *testing.T) {
 				add(fmt.Sprintf("evt.i=     %8d\n", e.I))
 				add(fmt.Sprintf("evt.d=     %8.3f\n", e.Data))
 				add(fmt.Sprintf("evt.array= %8.3f %8.3f\n", e.Array[0], e.Array[1]))
+				add(fmt.Sprintf("evt.ndarri=%8d %8d %8d %8d\n", e.NdArrI[0][0], e.NdArrI[0][1], e.NdArrI[1][0], e.NdArrI[1][1]))
+				add(fmt.Sprintf("evt.ndarrf=%8.3f %8.3f %8.3f %8.3f\n", e.NdArrF[0][0], e.NdArrF[0][1], e.NdArrF[1][0], e.NdArrF[1][1]))
 			}
 
 			if len(e.Array) != 2 {
