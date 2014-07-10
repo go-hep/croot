@@ -246,18 +246,19 @@ func TestTreeStructRW(t *testing.T) {
 				add(fmt.Sprintf(":: processing event %d...\n", iev))
 			}
 
-			e.I = iev
-			// the two energies follow a gaussian distribution
-			e.A.E = src.NormFloat64()
-			e.B.E = src.NormFloat64()
-
-			e.A.T = src.Float64()
-			e.B.T = e.A.T * (src.NormFloat64()*1. + 0.)
-
-			e.ArrayI[0] = iev
-			e.ArrayI[1] = -iev
-			e.ArrayD[0] = e.A.T
-			e.ArrayD[1] = e.B.T
+			e = Event{
+				I: iev,
+				A: Det{
+					E: src.NormFloat64(),
+					T: src.NormFloat64(),
+				},
+				B: Det{
+					E: src.NormFloat64(),
+					T: src.NormFloat64(),
+				},
+				ArrayI: [2]int64{+iev, -iev},
+				ArrayD: [2]float64{src.NormFloat64(), src.NormFloat64()},
+			}
 
 			if iev%1000 == 0 {
 				add(fmt.Sprintf("evt.i=   %8d\n", e.I))
@@ -294,6 +295,9 @@ func TestTreeStructRW(t *testing.T) {
 			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
 		}
 
+		// initialize our source of random numbers...
+		src := rand.New(rand.NewSource(1))
+
 		var e Event
 		tree.SetBranchAddress("evt", &e)
 
@@ -318,6 +322,24 @@ func TestTreeStructRW(t *testing.T) {
 			if iev != e.I {
 				t.Fatalf("invalid event number. expected %v, got %v", iev, e.I)
 			}
+
+			exp := Event{
+				I: iev,
+				A: Det{
+					E: src.NormFloat64(),
+					T: src.NormFloat64(),
+				},
+				B: Det{
+					E: src.NormFloat64(),
+					T: src.NormFloat64(),
+				},
+				ArrayI: [2]int64{+iev, -iev},
+				ArrayD: [2]float64{src.NormFloat64(), src.NormFloat64()},
+			}
+			if !reflect.DeepEqual(e, exp) {
+				t.Errorf("invalid data value.\nexp=%#v\ngot=%#v\n", exp, e)
+			}
+
 		}
 		f.Close("")
 	}
@@ -638,7 +660,7 @@ func TestTreeStructString(t *testing.T) {
 	const compress = 1
 	const netopt = 0
 
-	return // FIXME
+	t.Skip("string not yet")
 
 	// write
 	ref := make([]string, 0, 50)
