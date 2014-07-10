@@ -503,10 +503,12 @@ func TestTreeStructArray(t *testing.T) {
 
 			e.Array[0] = e.Data
 			e.Array[1] = -e.Data
+
 			e.NdArrI[0][0] = iev
 			e.NdArrI[0][1] = -iev
 			e.NdArrI[1][0] = -iev
 			e.NdArrI[1][1] = iev
+
 			e.NdArrF[0][0] = e.Data
 			e.NdArrF[0][1] = -e.Data
 			e.NdArrF[1][0] = -e.Data
@@ -550,6 +552,9 @@ func TestTreeStructArray(t *testing.T) {
 			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
 		}
 
+		// initialize our source of random numbers...
+		src := rand.New(rand.NewSource(1))
+
 		var e DataArray
 		tree.SetBranchAddress("evt", &e)
 
@@ -580,8 +585,23 @@ func TestTreeStructArray(t *testing.T) {
 				t.Errorf("invalid e.Array[0] value: %v (expected %v)",
 					e.Array[1], -e.Data)
 			}
-			if iev != e.I {
-				t.Fatalf("invalid event number. expected %v, got %v", iev, e.I)
+
+			data := src.NormFloat64()
+			exp := DataArray{
+				I:     iev,
+				Data:  data,
+				Array: [2]float64{data, -data},
+				NdArrI: [2][2]int64{
+					{+iev, -iev},
+					{-iev, +iev},
+				},
+				NdArrF: [2][2]float64{
+					{+data, -data},
+					{-data, +data},
+				},
+			}
+			if !reflect.DeepEqual(e, exp) {
+				t.Errorf("invalid data value.\nexp=%#v\ngot=%#v\n", exp, e)
 			}
 		}
 		f.Close("")
