@@ -11,6 +11,11 @@ CRoot_File
 CRoot_ROOT_GetFile(CRoot_ROOT self,
                    const char *name);
 
+CROOT_API
+CRoot_ObjArray
+CRoot_ROOT_GetListOfClasses(CRoot_ROOT self);
+
+
 #ifdef __cplusplus
 }
 #endif

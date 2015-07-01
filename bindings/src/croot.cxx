@@ -99,6 +99,14 @@ CRoot_ROOT_GetFile(CRoot_ROOT self,
   return (CRoot_File)f;
 }
 
+CRoot_ObjArray
+CRoot_Class_GetListOfClasses(CRoot_ROOT self)
+{
+  TObjArray *arr = (TObjArray*)((TROOT*)self)->GetListOfClasses();
+  return (CRoot_ObjArray)arr;
+}
+
+
 
 /* TTree */
 CRoot_Tree
