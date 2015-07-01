@@ -112,7 +112,7 @@ struct __golang__gostring {
 namespace {
 //------Stub functions for class goslice<int> -------------------------------
 static void destructor_176(void*, void * o, const std::vector<void*>&, void *) {
-(((::golang::goslice<int>*)o)->::golang::goslice<int>::~goslice)();
+((::golang::goslice<int>*)o)->::golang::goslice<int>::~goslice();
 }
 static  void operator_177( void* retaddr, void* o, const std::vector<void*>& arg, void*)
 {
@@ -169,7 +169,7 @@ void __golang__goslice_int__db_funcmem(Reflex::Class*) {
 }
 //------Stub functions for class goslice<float> -------------------------------
 static void destructor_182(void*, void * o, const std::vector<void*>&, void *) {
-(((::golang::goslice<float>*)o)->::golang::goslice<float>::~goslice)();
+((::golang::goslice<float>*)o)->::golang::goslice<float>::~goslice();
 }
 static  void operator_183( void* retaddr, void* o, const std::vector<void*>& arg, void*)
 {
@@ -226,7 +226,7 @@ void __golang__goslice_float__db_funcmem(Reflex::Class*) {
 }
 //------Stub functions for class goslice<double> -------------------------------
 static void destructor_188(void*, void * o, const std::vector<void*>&, void *) {
-(((::golang::goslice<double>*)o)->::golang::goslice<double>::~goslice)();
+((::golang::goslice<double>*)o)->::golang::goslice<double>::~goslice();
 }
 static  void operator_189( void* retaddr, void* o, const std::vector<void*>& arg, void*)
 {
@@ -285,7 +285,7 @@ void __golang__goslice_double__db_funcmem(Reflex::Class*) {
 }
 //------Stub functions for class gostring -------------------------------
 static void destructor_194(void*, void * o, const std::vector<void*>&, void *) {
-(((::golang::gostring*)o)->::golang::gostring::~gostring)();
+((::golang::gostring*)o)->::golang::gostring::~gostring();
 }
 static  void operator_195( void* retaddr, void* o, const std::vector<void*>& arg, void*)
 {
