@@ -4,7 +4,14 @@
 
 ROOT_CONFIG := root-config
 ROOT_CFLAGS := $(shell $(ROOT_CONFIG) --cflags)
+ROOT_VERSION := $(shell $(ROOT_CONFIG) --version | cut -f1 -d.)
+ifeq ($(ROOT_VERSION),6)
+ROOT_LDFLAGS := $(shell $(ROOT_CONFIG) --libs --ldflags)
+gocroot_tag := "root6"
+else
+gocroot_tag := "root5"
 ROOT_LDFLAGS := $(shell $(ROOT_CONFIG) --libs --ldflags) -lReflex -lCintex
+endif
 
 GOOS := $(shell go env GOOS)
 GOARCH := $(shell go env GOARCH)
@@ -39,17 +46,17 @@ GOCMD := go
 build_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
  CGO_CFLAGS=$(CGO_CFLAGS) \
- $(GOCMD) build $(GO_VERBOSE) -compiler=$(GO_COMPILER)
+ $(GOCMD) build $(GO_VERBOSE) -tags=$(gocroot_tag) -compiler=$(GO_COMPILER)
 
 install_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
  CGO_CFLAGS=$(CGO_CFLAGS) \
- $(GOCMD) install $(GO_VERBOSE) -compiler=$(GO_COMPILER)
+ $(GOCMD) install $(GO_VERBOSE) -tags=$(gocroot_tag) -compiler=$(GO_COMPILER)
 
 test_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
  CGO_CFLAGS=$(CGO_CFLAGS) \
- $(GOCMD) test $(GO_VERBOSE) -compiler=$(GO_COMPILER)
+ $(GOCMD) test $(GO_VERBOSE) -tags=$(gocroot_tag) -compiler=$(GO_COMPILER)
 
 cxx_croot_sources := \
  bindings/src/croot.cxx \

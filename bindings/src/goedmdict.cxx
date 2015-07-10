@@ -20,6 +20,10 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 */
 
+#include "RVersion.h"
+#if ROOT_VERSION_CODE < ROOT_VERSION(6,0,0)
+
+
 #ifdef _WIN32
 #pragma warning ( disable : 4786 )
 #pragma warning ( disable : 4345 )
@@ -358,3 +362,6 @@ namespace {
   static Dictionaries instance;
 }
 } // unnamed namespace
+
+#endif /* ROOT-5 */
+

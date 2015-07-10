@@ -12,10 +12,13 @@
 #include <stdlib.h>
 
 // --------------------------------------------------
+#if ROOT_VERSION_CODE < ROOT_VERSION(6,0,0)
 #include "Reflex/Builder/ReflexBuilder.h"
 #include "Reflex/Builder/ClassBuilder.h"
 #include "Reflex/Type.h"
 #include "Cintex/Cintex.h"
+#endif /* ROOT-5 */
+
 /*
 namespace golang {
   struct gostring {

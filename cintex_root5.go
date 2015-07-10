@@ -1,3 +1,5 @@
+// +build root5
+
 package croot
 
 /*

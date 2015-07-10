@@ -14,7 +14,9 @@
 #include "TMath.h"
 #include "TRandom.h"
 
+#if ROOT_VERSION_CODE < ROOT_VERSION(6,0,0)
 #include "Api.h"
+#endif
 
 /* TObject */
 const char*
@@ -658,6 +660,8 @@ CRoot_Math_Log10(double x)
 {
   return TMath::Log10(x);
 }
+
+#if ROOT_VERSION_CODE < ROOT_VERSION(6,0,0)
 
 
 /* -- CINT-API -- */
@@ -1458,4 +1462,5 @@ void croot_init()
 {
   CRoot_gROOT = (CRoot_ROOT)gROOT;
 }
+#endif /* ROOT-5 */
 
