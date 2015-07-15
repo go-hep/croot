@@ -5,10 +5,9 @@
 extern "C" {
 #endif
 
-/* The global ROOT object */
-extern CRoot_ROOT CRoot_gROOT;
-
+extern CRoot_Interpreter CRoot_gInterpreter;
 extern CRoot_Random CRoot_gRandom;
+extern CRoot_ROOT CRoot_gROOT;
 
 #ifdef __cplusplus
 }

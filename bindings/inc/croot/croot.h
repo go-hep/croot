@@ -35,6 +35,7 @@
 #include "croot/croot_class.h"
 #include "croot/croot_file.h"
 #include "croot/croot_hist.h"
+#include "croot/croot_interpreter.h"
 #include "croot/croot_leaf.h"
 #include "croot/croot_math.h"
 #include "croot/croot_object.h"

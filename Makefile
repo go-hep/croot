@@ -60,12 +60,13 @@ test_cmd = \
 
 cxx_croot_sources := \
  bindings/src/croot.cxx \
- bindings/src/goedmdict.cxx \
+ bindings/src/croot_class.cxx \
  bindings/src/croot_go_schema.cxx \
  bindings/src/croot_goobject.cxx \
- bindings/src/croot_class.cxx \
+ bindings/src/croot_hist.cxx \
+ bindings/src/croot_interpreter.cxx \
  bindings/src/croot_leaf.cxx \
- bindings/src/croot_hist.cxx 
+ bindings/src/goedmdict.cxx
 
 cxx_croot_objects := $(subst .cxx,.o,$(cxx_croot_sources))
 

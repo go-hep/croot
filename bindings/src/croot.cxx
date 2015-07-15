@@ -11,6 +11,7 @@
 #include "TObjArray.h"
 
 #include "TROOT.h"
+#include "TInterpreter.h"
 #include "TMath.h"
 #include "TRandom.h"
 
@@ -1461,6 +1462,8 @@ void __attribute__ ((constructor)) croot_init();
 void croot_init()
 {
   CRoot_gROOT = (CRoot_ROOT)gROOT;
+  CRoot_gRandom = (CRoot_Random)gRandom;
+  CRoot_gInterpreter = (CRoot_Interpreter)gROOT->GetInterpreter();
 }
 #endif /* ROOT-5 */
 

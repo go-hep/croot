@@ -11,6 +11,7 @@ extern "C" {
   typedef void *CRoot_Branch; /* TBranch */
   typedef void *CRoot_BranchElement; /* TBranchElement */
   typedef void *CRoot_Chain; /* TChain */
+  typedef void *CRoot_Interpreter; /* TInterpreter */
   typedef void *CRoot_Leaf; /* TLeaf */
   typedef void *CRoot_LeafD; /* TLeafD */
   typedef void *CRoot_LeafF; /* TLeafF */
