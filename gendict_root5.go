@@ -358,7 +358,7 @@ func rflx_type_from(t reflect.Type) *ReflexType {
 func reflect_name2rflx(t reflect.Type) string {
 	switch t.Kind() {
 	case reflect.Slice:
-		return "golang::slice<" + t.Elem().Name() + ">"
+		return "golang::goslice<" + t.Elem().Name() + ">"
 	case reflect.String:
 		return "golang::gostring"
 	case reflect.Array:
