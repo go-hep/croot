@@ -50,21 +50,6 @@ var (
 	_c_croot_int_sz = reflect.TypeOf(croot_int(0)).Size()
 )
 
-type ctor_fct func(retaddr, mem, args, ctx unsafe.Pointer)
-
-var ctors []*ctor_fct
-
-//export GoCRoot_make_ctor
-func GoCRoot_make_ctor(sz uintptr) *ctor_fct {
-	fct := func(retaddr, mem, args, ctx unsafe.Pointer) {
-		fmt.Printf("--ctor[%d] [%v] [%v] [%v] [%v]...\n",
-			sz, retaddr, mem, args, ctx)
-	}
-	ctor := (*ctor_fct)(&fct)
-	ctors = append(ctors, ctor)
-	return ctor
-}
-
 // map of already translated-to-Reflex types
 var reflexed_types map[string]*ReflexType
 
