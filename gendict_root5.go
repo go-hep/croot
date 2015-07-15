@@ -55,7 +55,6 @@ var reflexed_types map[string]*ReflexType
 
 func init() {
 	reflexed_types = make(map[string]*ReflexType)
-	reflexed_types["golang::string"] = gendict_string()
 }
 
 // helper function to create a Reflex::Type from a go.reflect.Type
@@ -114,7 +113,7 @@ func gendict(t reflect.Type) {
 		rflx_type = gendict_slice(t)
 
 	case reflect.String:
-		rflx_type = ReflexType_ByName("golang::string")
+		rflx_type = ReflexType_ByName("golang::gostring")
 
 	case reflect.Struct:
 		rflx_type = gendict_struct(t)
@@ -263,70 +262,6 @@ func gendict_slice(t reflect.Type) *ReflexType {
 	return rt
 }
 
-// helper function to create a Reflex::Class-type from a go-string
-func gendict_string() *ReflexType {
-	tname := "golang::string"
-	full_name := tname
-	//fmt.Printf("::gendict_string[%s]...\n", full_name)
-
-	bldr := NewReflexClassBuilder(
-		//FIXME: generate namespaces for each containing package
-		//       mentionned in 'full_name'
-		full_name,
-		_c_croot_int_sz+_c_pointer_sz,
-		uint32(Reflex_PUBLIC|Reflex_ARTIFICIAL),
-		Reflex_STRUCT)
-
-	ty_int32_t := ReflexType_ByName("int32_t")
-	offset := uintptr(0)
-	bldr.AddDataMember(
-		ty_int32_t,
-		"Len",
-		offset,
-		uint32(Reflex_PUBLIC),
-	)
-	offset += _c_croot_int_sz
-
-	ty_char := ReflexType_ByName("char")
-	ty_char_p := NewReflexPointerBuilder(ty_char)
-	bldr.AddDataMember(
-		ty_char_p,
-		"Data",
-		offset,
-		uint32(Reflex_PUBLIC),
-	)
-	//bldr.AddProperty("comment", "[Len]")
-
-	ty_void := ReflexType_ByName("void")
-	sz := C.size_t(_c_croot_int_sz + _c_pointer_sz)
-
-	ty_ctor := NewReflexFunctionTypeBuilder(ty_void)
-	stub_fct_ctor := (ReflexStubFunction)(C._get_go_reflex_dummy_ctor_stub())
-	bldr.AddFunctionMember(
-		ty_ctor,
-		tname,
-		stub_fct_ctor,
-		unsafe.Pointer(&sz),
-		uint32(Reflex_PUBLIC|Reflex_CONSTRUCTOR))
-
-	ty_dtor := NewReflexFunctionTypeBuilder(ty_void)
-	stub_fct_dtor := (ReflexStubFunction)(C._get_go_reflex_dummy_dtor_stub())
-	bldr.AddFunctionMember(
-		ty_dtor,
-		"~"+tname,
-		stub_fct_dtor,
-		nil,
-		uint32(Reflex_PUBLIC|Reflex_DESTRUCTOR))
-
-	bldr.Delete()
-	rt := ReflexType_ByName(tname)
-	// fmt.Printf(":: reflect-siz: %d\n", t.Size())
-	// fmt.Printf(":: %s-size: %d\n", rt.Name(), rt.SizeOf())
-	// fmt.Printf(":: %s-mbrs: %d\n", rt.Name(), rt.DataMemberSize(Reflex_INHERITEDMEMBERS_NO))
-	//fmt.Printf("::gendict_string[%s]...[done]\n", full_name)
-	return rt
-}
-
 // return a *croot.ReflexType from a reflect.Type one
 func rflx_type_from(t reflect.Type) *ReflexType {
 	var rflx *ReflexType = nil
@@ -399,7 +334,7 @@ func rflx_type_from(t reflect.Type) *ReflexType {
 		rflx = ReflexType_ByName(reflect_name2rflx(t))
 
 	case reflect.String:
-		rflx = ReflexType_ByName("golang::string")
+		rflx = ReflexType_ByName("golang::gostring")
 
 	case reflect.Struct:
 		gendict_struct(t)
@@ -425,7 +360,7 @@ func reflect_name2rflx(t reflect.Type) string {
 	case reflect.Slice:
 		return "golang::slice<" + t.Elem().Name() + ">"
 	case reflect.String:
-		return "golang::string"
+		return "golang::gostring"
 	case reflect.Array:
 		return fmt.Sprintf("%v[%v]", reflect_name2rflx(t.Elem()), t.Len())
 	default:
