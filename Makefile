@@ -89,6 +89,7 @@ cxx-lib: dirs $(cxx_croot_objects)
 	 -o $(INSTALL_LIBDIR)/libcxx-croot.so \
 	 $(CXX_CROOT_CXXFLAGS) $(CXX_CROOT_LDFLAGS) \
 	 $(cxx_croot_objects)
+	@touch root.go
 
 test: install
 	@$(test_cmd) ./cmem
@@ -97,4 +98,5 @@ test: install
 clean:
 	@rm -f $(cxx_croot_objects)
 	@rm -rf $(INSTALL_LIBDIR)
-	@rm -f $(INSTALL_DIR)/github.com/go-hep/croot.a
+	@rm -rf $(INSTALL_DIR)/github.com/go-hep/croot
+	@rm -rf $(INSTALL_DIR)/github.com/go-hep/croot.a
