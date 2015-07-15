@@ -96,6 +96,5 @@ test: install
 
 clean:
 	@rm -f $(cxx_croot_objects)
-	@rm -f $(INSTALL_LIBDIR)/libcxx-croot.so
-	@rm -f $(INSTALL_LIBDIR)
+	@rm -rf $(INSTALL_LIBDIR)
 	@rm -f $(INSTALL_DIR)/github.com/go-hep/croot.a
