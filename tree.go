@@ -229,7 +229,7 @@ func (t *tree_impl) Branch(name string, obj interface{}, bufsiz, splitlevel int)
 	}
 	br := &gobranch{v: val, c: cmem.ValueOf(val.Interface())}
 	// register the type with Reflex
-	genreflex(br.v.Type())
+	gendict(br.v.Type())
 
 	br.cptr = unsafe.Pointer(br.c.UnsafeAddr())
 	br.addr = unsafe.Pointer(&br.cptr)
@@ -263,7 +263,7 @@ func (t *tree_impl) Branch2(name string, objaddr interface{}, leaflist string, b
 	}
 	br := &gobranch{v: val, c: cmem.ValueOf(val.Interface())}
 	// register the type with Reflex
-	genreflex(br.v.Type())
+	gendict(br.v.Type())
 
 	br.cptr = unsafe.Pointer(br.c.UnsafeAddr())
 	br.addr = unsafe.Pointer(br.cptr)
@@ -449,7 +449,7 @@ func (t *tree_impl) SetBranchAddress(name string, obj interface{}) int32 {
 	br := &gobranch{v: val}
 	typ := br.v.Type()
 	// register the type with Reflex
-	genreflex(typ)
+	gendict(typ)
 
 	br.c = cmem.ValueOf(val.Interface())
 	br.cptr = unsafe.Pointer(br.c.UnsafeAddr())

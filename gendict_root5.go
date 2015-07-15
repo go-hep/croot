@@ -70,7 +70,7 @@ var reflexed_types map[string]*ReflexType
 
 func init() {
 	reflexed_types = make(map[string]*ReflexType)
-	reflexed_types["golang::string"] = genreflex_string()
+	reflexed_types["golang::string"] = gendict_string()
 }
 
 // RegisterType declares the (equivalent) C-layout of value v to ROOT so
@@ -82,7 +82,7 @@ func RegisterType(v interface{}) {
 	}
 	t := rv.Type()
 	//fmt.Printf("registering [%s] (sz:%d)...\n",t, t.Size())
-	genreflex(t)
+	gendict(t)
 }
 
 func follow_ptr(v reflect.Value) reflect.Value {
@@ -107,12 +107,12 @@ func to_cxx_name(t reflect.Type) string {
 }
 
 // helper function to create a Reflex::Type from a go.reflect.Type
-func genreflex(t reflect.Type) {
-	//fmt.Printf("::genreflex[%v]...\n", t)
+func gendict(t reflect.Type) {
+	//fmt.Printf("::gendict[%v]...\n", t)
 	_, ok := reflexed_types[reflect_name2rflx(t)]
 	if ok {
 		// already processed...
-		//fmt.Printf("::genreflex[%v]... (already processed)\n", t)
+		//fmt.Printf("::gendict[%v]... (already processed)\n", t)
 		return
 	}
 
@@ -138,7 +138,7 @@ func genreflex(t reflect.Type) {
 	// 	// no-op ?
 
 	case reflect.Array:
-		genreflex(t.Elem())
+		gendict(t.Elem())
 		rflx_type = rflx_type_from(t)
 
 	// case reflect.Chan:
@@ -154,18 +154,18 @@ func genreflex(t reflect.Type) {
 	// 	panic(fmt.Sprintf("cannot handle Map-kind [%s]", t.Name()))
 
 	case reflect.Ptr:
-		//fmt.Printf("genreflex-ptr...\n")
-		genreflex(t.Elem())
+		//fmt.Printf("gendict-ptr...\n")
+		gendict(t.Elem())
 
 	case reflect.Slice:
-		genreflex(t.Elem())
-		rflx_type = genreflex_slice(t)
+		gendict(t.Elem())
+		rflx_type = gendict_slice(t)
 
 	case reflect.String:
 		rflx_type = ReflexType_ByName("golang::string")
 
 	case reflect.Struct:
-		rflx_type = genreflex_struct(t)
+		rflx_type = gendict_struct(t)
 
 	default:
 		panic(fmt.Sprintf("unhandled type [%s]", t.Name()))
@@ -174,14 +174,14 @@ func genreflex(t reflect.Type) {
 	if rflx_type != nil {
 		reflexed_types[reflect_name2rflx(t)] = rflx_type
 	}
-	//fmt.Printf("::genreflex[%v]...[done]\n", t)
+	//fmt.Printf("::gendict[%v]...[done]\n", t)
 }
 
 // helper function to create a Reflex::Class-type from a go.struct
-func genreflex_struct(t reflect.Type) *ReflexType {
+func gendict_struct(t reflect.Type) *ReflexType {
 	tname := t.Name()
 	full_name := to_cxx_name(t)
-	//fmt.Printf("::genreflex_struct[%s]...\n", full_name)
+	//fmt.Printf("::gendict_struct[%s]...\n", full_name)
 
 	bldr := NewReflexClassBuilder(
 		//FIXME: generate namespaces for each containing package
@@ -196,7 +196,7 @@ func genreflex_struct(t reflect.Type) *ReflexType {
 		f := t.Field(i)
 		offset := f.Offset
 		f_name := f.Name
-		genreflex(f.Type)
+		gendict(f.Type)
 		bldr.AddDataMember(
 			rflx_type_from(f.Type),
 			f_name,
@@ -229,22 +229,22 @@ func genreflex_struct(t reflect.Type) *ReflexType {
 	// fmt.Printf(":: reflect-siz: %d\n", t.Size())
 	// fmt.Printf(":: %s-size: %d\n", rt.Name(), rt.SizeOf())
 	// fmt.Printf(":: %s-mbrs: %d\n", rt.Name(), rt.DataMemberSize(Reflex_INHERITEDMEMBERS_NO))
-	//fmt.Printf("::genreflex_struct[%s]...[done]\n", full_name)
+	//fmt.Printf("::gendict_struct[%s]...[done]\n", full_name)
 	return rt
 }
 
 // helper function to create a Reflex::Class-type from a go.struct
-func genreflex_slice(t reflect.Type) *ReflexType {
+func gendict_slice(t reflect.Type) *ReflexType {
 	tname := reflect_name2rflx(t)
 	full_name := tname
 	// full_name = "golang::goslice<double>"
-	// fmt.Printf("::genreflex_slice[%s]...\n", full_name)
+	// fmt.Printf("::gendict_slice[%s]...\n", full_name)
 	// {
 	// 	rt := ReflexType_ByName(full_name)
 	// 	fmt.Printf(":: reflect-siz: %d\n", t.Size())
 	// 	fmt.Printf(":: %s-size: %d\n", rt.Name(), rt.SizeOf())
 	// 	fmt.Printf(":: %s-mbrs: %d\n", rt.Name(), rt.DataMemberSize(Reflex_INHERITEDMEMBERS_NO))
-	// 	fmt.Printf("::genreflex_slice[%s]...[done]\n", full_name)
+	// 	fmt.Printf("::gendict_slice[%s]...[done]\n", full_name)
 	// 	return rt
 	// }
 	bldr := NewReflexClassBuilder(
@@ -307,15 +307,15 @@ func genreflex_slice(t reflect.Type) *ReflexType {
 	// fmt.Printf(":: reflect-siz: %d\n", t.Size())
 	// fmt.Printf(":: %s-size: %d\n", rt.Name(), rt.SizeOf())
 	// fmt.Printf(":: %s-mbrs: %d\n", rt.Name(), rt.DataMemberSize(Reflex_INHERITEDMEMBERS_NO))
-	// fmt.Printf("::genreflex_slice[%s]...[done]\n", full_name)
+	// fmt.Printf("::gendict_slice[%s]...[done]\n", full_name)
 	return rt
 }
 
 // helper function to create a Reflex::Class-type from a go-string
-func genreflex_string() *ReflexType {
+func gendict_string() *ReflexType {
 	tname := "golang::string"
 	full_name := tname
-	//fmt.Printf("::genreflex_string[%s]...\n", full_name)
+	//fmt.Printf("::gendict_string[%s]...\n", full_name)
 
 	bldr := NewReflexClassBuilder(
 		//FIXME: generate namespaces for each containing package
@@ -371,7 +371,7 @@ func genreflex_string() *ReflexType {
 	// fmt.Printf(":: reflect-siz: %d\n", t.Size())
 	// fmt.Printf(":: %s-size: %d\n", rt.Name(), rt.SizeOf())
 	// fmt.Printf(":: %s-mbrs: %d\n", rt.Name(), rt.DataMemberSize(Reflex_INHERITEDMEMBERS_NO))
-	//fmt.Printf("::genreflex_string[%s]...[done]\n", full_name)
+	//fmt.Printf("::gendict_string[%s]...[done]\n", full_name)
 	return rt
 }
 
@@ -443,14 +443,14 @@ func rflx_type_from(t reflect.Type) *ReflexType {
 		rflx = NewReflexPointerBuilder(rflx_type_from(t.Elem()))
 
 	case reflect.Slice:
-		genreflex_slice(t)
+		gendict_slice(t)
 		rflx = ReflexType_ByName(reflect_name2rflx(t))
 
 	case reflect.String:
 		rflx = ReflexType_ByName("golang::string")
 
 	case reflect.Struct:
-		genreflex_struct(t)
+		gendict_struct(t)
 		rflx = ReflexType_ByName(t.Name())
 
 	// case reflect.UnsafePointer:

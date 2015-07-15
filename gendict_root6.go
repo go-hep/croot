@@ -9,6 +9,6 @@ func to_cxx_name(t reflect.Type) string {
 	return t.Name()
 }
 
-func genreflex(t reflect.Type) {
-	panic("genreflex not implemented for ROOT-6")
+func gendict(t reflect.Type) {
+	panic("gendict not implemented for ROOT-6")
 }
