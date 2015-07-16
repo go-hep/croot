@@ -87,6 +87,55 @@ func cxxtypename(ct cmem.Type) typename {
 			Name: name.Name,
 			Dims: fmt.Sprintf("[%d]%s", n, name.Dims),
 		}
+
+	case cmem.Int8:
+		return typename{
+			Name: "int8_t",
+			Dims: "",
+		}
+
+	case cmem.Int16:
+		return typename{
+			Name: "int16_t",
+			Dims: "",
+		}
+
+	case cmem.Int32:
+		return typename{
+			Name: "int32_t",
+			Dims: "",
+		}
+
+	case cmem.Int64:
+		return typename{
+			Name: "int64_t",
+			Dims: "",
+		}
+
+	case cmem.Uint8:
+		return typename{
+			Name: "uint8_t",
+			Dims: "",
+		}
+
+	case cmem.Uint16:
+		return typename{
+			Name: "uint16_t",
+			Dims: "",
+		}
+
+	case cmem.Uint32:
+		return typename{
+			Name: "uint32_t",
+			Dims: "",
+		}
+
+	case cmem.Uint64:
+		return typename{
+			Name: "uint64_t",
+			Dims: "",
+		}
+
 	}
 
 	return typename{
