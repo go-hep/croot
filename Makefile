@@ -8,9 +8,11 @@ ROOT_VERSION := $(shell $(ROOT_CONFIG) --version | cut -f1 -d.)
 ifeq ($(ROOT_VERSION),6)
 ROOT_LDFLAGS := $(shell $(ROOT_CONFIG) --libs --ldflags)
 gocroot_tag := "root6"
+gendict_file := gen_goedmdict_root6.go
 else
 gocroot_tag := "root5"
 ROOT_LDFLAGS := $(shell $(ROOT_CONFIG) --libs --ldflags) -lReflex -lCintex
+gendict_file := gen_goedmdict_root5.go
 endif
 
 GOOS := $(shell go env GOOS)
@@ -43,6 +45,11 @@ endif
 
 GOCMD := go
 
+gen_cmd = \
+ CGO_LDFLAGS=$(CGO_LDFLAGS) \
+ CGO_CFLAGS=$(CGO_CFLAGS) \
+ $(GOCMD) generate $(GO_VERBOSE) -tags=$(gocroot_tag) -compiler=$(GO_COMPILER)
+
 build_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
  CGO_CFLAGS=$(CGO_CFLAGS) \
@@ -65,10 +72,14 @@ cxx_croot_sources := \
  bindings/src/croot_goobject.cxx \
  bindings/src/croot_hist.cxx \
  bindings/src/croot_interpreter.cxx \
- bindings/src/croot_leaf.cxx \
- bindings/src/goedmdict.cxx
+ bindings/src/croot_leaf.cxx
+
+cxx_croot_dicts := \
+ bindings/src/goedm_dict.cxx
 
 cxx_croot_objects := $(subst .cxx,.o,$(cxx_croot_sources))
+cxx_croot_dict_objects := $(subst .cxx,.o,$(cxx_croot_dicts))
+cxx_croot_dict_pch := bindings/src/goedm_dict_rdict.pcm
 
 .PHONY: install dirs clean
 
@@ -81,23 +92,34 @@ dirs:
 	@$(CXX) $(CXX_CROOT_CXXFLAGS) -o $@ -c $<
 
 install: cxx-lib
-	@$(install_cmd) ./cmem
 	@$(install_cmd) .
 	@$(install_cmd) ./cmd/...
 
-cxx-lib: dirs $(cxx_croot_objects)
+cxx-lib: dirs $(cxx_croot_objects) $(cxx_croot_dict_objects)
 	@$(CXX) -shared \
 	 -o $(INSTALL_LIBDIR)/libcxx-croot.so \
 	 $(CXX_CROOT_CXXFLAGS) $(CXX_CROOT_LDFLAGS) \
-	 $(cxx_croot_objects)
+	 $(cxx_croot_objects) \
+	 $(cxx_croot_dict_objects)
 	@touch root.go
+	@install -D -m644 \
+		./$(cxx_croot_dict_pch) \
+		$(INSTALL_LIBDIR)/$(notdir $(cxx_croot_dict_pch))
+
+gen-dict:
+	@cd bindings/src && $(gen_cmd) $(gendict_file)
+
+$(cxx_croot_dicts): gen-dict
+
 
 test: install
 	@$(test_cmd) ./cmem
+	@$(test_cmd) ./cgentype
 	@$(test_cmd) .
 
 clean:
 	@rm -f $(cxx_croot_objects)
+	@rm -f $(cxx_croot_dicts) $(cxx_croot_dict_objects) $(cxx_croot_dict_pch)
 	@rm -rf $(INSTALL_LIBDIR)
 	@rm -rf $(INSTALL_DIR)/github.com/go-hep/croot
 	@rm -rf $(INSTALL_DIR)/github.com/go-hep/croot.a
