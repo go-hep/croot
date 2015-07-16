@@ -1469,6 +1469,6 @@ void croot_init()
 {
   CRoot_gROOT = (CRoot_ROOT)gROOT;
   CRoot_gRandom = (CRoot_Random)gRandom;
-  CRoot_gInterpreter = (CRoot_Interpreter)gROOT->GetInterpreter();
+  CRoot_gInterpreter = (CRoot_Interpreter)gInterpreter;
 }
 
