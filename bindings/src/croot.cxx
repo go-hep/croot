@@ -109,7 +109,12 @@ CRoot_Class_GetListOfClasses(CRoot_ROOT self)
   return (CRoot_ObjArray)arr;
 }
 
-
+CRoot_Interpreter
+CRoot_ROOT_GetInterpreter(CRoot_ROOT self)
+{
+	TInterpreter *obj = (TInterpreter*)((TROOT*)self)->GetInterpreter();
+	return (CRoot_Interpreter)obj;
+}
 
 /* TTree */
 CRoot_Tree

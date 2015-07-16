@@ -15,6 +15,9 @@ CROOT_API
 CRoot_ObjArray
 CRoot_ROOT_GetListOfClasses(CRoot_ROOT self);
 
+CROOT_API
+CRoot_Interpreter
+CRoot_ROOT_GetInterpreter(CRoot_ROOT self);
 
 #ifdef __cplusplus
 }
