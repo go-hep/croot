@@ -173,6 +173,7 @@ func (br *gobranch) get_c_branch(t *tree_impl, name string) unsafe.Pointer {
 	}
 
 	log.Panicf("==[%s] err... utter confusion!!\n", name)
+	return ptr
 }
 
 func (br *gobranch) update_from_c(t *tree_impl, name string) error {
