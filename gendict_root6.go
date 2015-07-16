@@ -17,7 +17,6 @@ import (
 
 func gendict(t reflect.Type) {
 	code := cgentype.Generate(t)
-	fmt.Printf("code=%v\n===\n", code)
 	c_code := C.CString(code)
 	defer C.free(unsafe.Pointer(c_code))
 

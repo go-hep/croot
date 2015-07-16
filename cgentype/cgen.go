@@ -12,7 +12,6 @@ import (
 func Generate(t reflect.Type) string {
 	buf := []string{}
 	ct := cmem.TypeOf(t)
-	fmt.Printf("generate: %v\n", ct)
 	switch ct.Kind() {
 	case cmem.Struct:
 		buf = append(buf, "struct ", ct.Name(), " {\n")
