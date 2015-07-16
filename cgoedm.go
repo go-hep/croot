@@ -148,7 +148,6 @@ func (cnv *cnv_slice_t) cnv_from_c(gptr reflect.Value, cptr cmem.Value) error {
 		}
 	}
 	return nil
-	return nil
 }
 
 // EOF

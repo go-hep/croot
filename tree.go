@@ -21,6 +21,7 @@ import "C"
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"reflect"
 	"unsafe"
@@ -171,9 +172,7 @@ func (br *gobranch) get_c_branch(t *tree_impl, name string) unsafe.Pointer {
 		return ptr
 	}
 
-	fmt.Printf("==[%s] err... utter confusion!!\n", name)
-	panic("boo")
-	return ptr
+	log.Panicf("==[%s] err... utter confusion!!\n", name)
 }
 
 func (br *gobranch) update_from_c(t *tree_impl, name string) error {

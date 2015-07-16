@@ -27,7 +27,6 @@ func follow_ptr(v reflect.Value) reflect.Value {
 			return v
 		}
 	}
-	return v
 }
 
 func to_cxx_name(t reflect.Type) string {
