@@ -72,7 +72,8 @@ func cxxtypename(ct cmem.Type) typename {
 		}
 
 	case cmem.Ptr:
-		if ct == cmem.C_string {
+		switch ct {
+		case cmem.C_string:
 			return typename{
 				Name: "::golang::gostring",
 				Dims: "",
@@ -135,7 +136,6 @@ func cxxtypename(ct cmem.Type) typename {
 			Name: "uint64_t",
 			Dims: "",
 		}
-
 	}
 
 	return typename{
