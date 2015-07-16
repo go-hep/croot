@@ -92,7 +92,7 @@ func main() {
 	ctx := Context{
 		Package: *pname,
 		Defs: map[string]*StructDef{
-			"DataReader": &StructDef{
+			"DataReader": {
 				Name:   "DataReader",
 				Fields: nil,
 			},
