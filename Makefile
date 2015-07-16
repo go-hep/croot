@@ -102,7 +102,7 @@ cxx-lib: dirs $(cxx_croot_objects) $(cxx_croot_dict_objects)
 	 $(cxx_croot_objects) \
 	 $(cxx_croot_dict_objects)
 	@touch root.go
-	@install -D -m644 \
+	@install -m644 \
 		./$(cxx_croot_dict_pch) \
 		$(INSTALL_LIBDIR)/$(notdir $(cxx_croot_dict_pch))
 
