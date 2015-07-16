@@ -35,13 +35,37 @@ func gendict(t reflect.Type) {
 		reflect.Uint,
 		reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
 		reflect.Float32, reflect.Float64,
-		reflect.Complex64, reflect.Complex128,
-		reflect.Uintptr:
+		reflect.Complex64, reflect.Complex128:
 		// no-op
 		return
 
+	case reflect.Uintptr, reflect.UnsafePointer:
+		// TODO(sbinet)
+		panic(fmt.Errorf(
+			"croot: cannot generate dictionary for uintptr/unsafe.Pointer [%s]",
+			t.Name(),
+		))
+
 	case reflect.Array:
 		gendict(t.Elem())
+		return
+
+	case reflect.Map:
+		panic(fmt.Errorf(
+			"croot: cannot generate dictionary for map [%s]",
+			t.Name(),
+		))
+
+	case reflect.Ptr:
+		gendict(t.Elem())
+		return
+
+	case reflect.Slice:
+		gendict(t.Elem())
+		return
+
+	case reflect.String:
+		// no-op
 		return
 
 	case reflect.Struct:
