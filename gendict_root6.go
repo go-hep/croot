@@ -86,11 +86,8 @@ func gendict(t reflect.Type) {
 	}
 
 	code := cgentype.Generate(t)
-	c_code := C.CString(code)
-	defer C.free(unsafe.Pointer(c_code))
-
-	ok := c2bool(C.CRoot_Interpreter_LoadText(C.CRoot_gInterpreter, c_code))
-	if !ok {
+	err := cling_gendict(code)
+	if err != nil {
 		panic(fmt.Errorf(
 			"croot: failed to generate dictionary for [%s]",
 			t.Name(),
@@ -99,14 +96,24 @@ func gendict(t reflect.Type) {
 	clinged_types[t] = struct{}{}
 }
 
-func init_cling() {
-	c_code := C.CString(`
-#include <stdint.h>
-`)
+func cling_gendict(code string) error {
+	c_code := C.CString(code)
 	defer C.free(unsafe.Pointer(c_code))
 
 	ok := c2bool(C.CRoot_Interpreter_LoadText(C.CRoot_gInterpreter, c_code))
 	if !ok {
+		return fmt.Errorf("croot: could not generate dictionary")
+	}
+	return nil
+
+}
+
+func init_cling() {
+	code := `
+#include <stdint.h> // for intXXX_t
+`
+	err := cling_gendict(code)
+	if err != nil {
 		panic("croot: could not initialize CLing interpreter")
 	}
 }
