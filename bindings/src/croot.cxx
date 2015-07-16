@@ -1461,6 +1461,7 @@ void croot_reflex_init() {
   ::croot_reflex_add_typedef<uint32_t>("uint32_t");
   ::croot_reflex_add_typedef<uint64_t>("uint64_t");
 }
+#endif /* ROOT-5 */
 
 void __attribute__ ((constructor)) croot_init();
 
@@ -1470,5 +1471,4 @@ void croot_init()
   CRoot_gRandom = (CRoot_Random)gRandom;
   CRoot_gInterpreter = (CRoot_Interpreter)gROOT->GetInterpreter();
 }
-#endif /* ROOT-5 */
 
