@@ -2,4 +2,4 @@
 
 package main
 
-//go:generate rootcling -f goedm_dict.cxx goedmdict.h goedmdict_linkdef.h
+//go:generate rootcling -f goedm_dict.cxx goedm.h goedm_linkdef.h
