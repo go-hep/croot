@@ -7,8 +7,8 @@ extern "C" {
 
   typedef const char CRoot_Option; /* Option_t */
   typedef int CRoot_Bool;      /* Bool_t */
-  typedef int CRoot_Int;       /* Int_t */
-  typedef short CRoot_Version; /* Version_t */
+  typedef int32_t CRoot_Int;       /* Int_t */
+  typedef int16_t CRoot_Version; /* Version_t */
 
   typedef void *CRoot_Branch; /* TBranch */
   typedef void *CRoot_BranchElement; /* TBranchElement */
