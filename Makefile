@@ -92,6 +92,7 @@ dirs:
 	@$(CXX) $(CXX_CROOT_CXXFLAGS) -o $@ -c $<
 
 install: cxx-lib
+	@$(gen_cmd) .
 	@$(install_cmd) .
 	@$(install_cmd) ./cmd/...
 
