@@ -6,11 +6,14 @@ extern "C" {
 #endif
 
   typedef const char CRoot_Option; /* Option_t */
-  typedef int CRoot_Bool;
+  typedef int CRoot_Bool;      /* Bool_t */
+  typedef int CRoot_Int;       /* Int_t */
+  typedef short CRoot_Version; /* Version_t */
 
   typedef void *CRoot_Branch; /* TBranch */
   typedef void *CRoot_BranchElement; /* TBranchElement */
   typedef void *CRoot_Chain; /* TChain */
+  typedef void *CRoot_DataMember; /* TDataMember */
   typedef void *CRoot_Interpreter; /* TInterpreter */
   typedef void *CRoot_Leaf; /* TLeaf */
   typedef void *CRoot_LeafD; /* TLeafD */
