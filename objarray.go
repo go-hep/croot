@@ -6,8 +6,6 @@ package croot
 // #include <string.h>
 import "C"
 
-//"unsafe"
-
 // ObjArray
 type ObjArray interface {
 	Object
