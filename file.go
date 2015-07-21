@@ -72,9 +72,9 @@ func (f *fileImpl) IsOpen() bool {
 	return c2bool(C.CRoot_File_IsOpen(f.c))
 }
 
-//func (f *file_impl) ReadBuffer(buf, pos, len)
-//func (f *file_impl) ReadBuffers
-//func (f *file_impl) WriteBuffer
+//func (f *fileImpl) ReadBuffer(buf, pos, len)
+//func (f *fileImpl) ReadBuffers
+//func (f *fileImpl) WriteBuffer
 
 func (f *fileImpl) Write(name string, opt, bufsiz int) int {
 	c_name := C.CString(name)
