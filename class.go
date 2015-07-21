@@ -53,42 +53,6 @@ type classImpl struct {
 	c C.CRoot_Class
 }
 
-func (c *classImpl) cptr() C.CRoot_Object {
-	return (C.CRoot_Object)(c.c)
-}
-
-func (c *classImpl) as_tobject() *object_impl {
-	return &object_impl{c.cptr()}
-}
-
-func (c *classImpl) ClassName() string {
-	return c.as_tobject().ClassName()
-}
-
-func (c *classImpl) Clone(opt Option) Object {
-	return c.as_tobject().Clone(opt)
-}
-
-func (c *classImpl) FindObject(name string) Object {
-	return c.as_tobject().FindObject(name)
-}
-
-func (c *classImpl) GetName() string {
-	return c.as_tobject().GetName()
-}
-
-func (c *classImpl) GetTitle() string {
-	return c.as_tobject().GetTitle()
-}
-
-func (c *classImpl) InheritsFrom(clsname string) bool {
-	return c.as_tobject().InheritsFrom(clsname)
-}
-
-func (c *classImpl) Print(option Option) {
-	c.as_tobject().Print(option)
-}
-
 func GetClass(name string) Class {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
@@ -134,42 +98,6 @@ func (c *classImpl) GetDataMember(name string) DataMember {
 
 type dataMemberImpl struct {
 	c C.CRoot_DataMember
-}
-
-func (c *dataMemberImpl) cptr() C.CRoot_Object {
-	return (C.CRoot_Object)(c.c)
-}
-
-func (c *dataMemberImpl) as_tobject() *object_impl {
-	return &object_impl{c.cptr()}
-}
-
-func (c *dataMemberImpl) ClassName() string {
-	return c.as_tobject().ClassName()
-}
-
-func (c *dataMemberImpl) Clone(opt Option) Object {
-	return c.as_tobject().Clone(opt)
-}
-
-func (c *dataMemberImpl) FindObject(name string) Object {
-	return c.as_tobject().FindObject(name)
-}
-
-func (c *dataMemberImpl) GetName() string {
-	return c.as_tobject().GetName()
-}
-
-func (c *dataMemberImpl) GetTitle() string {
-	return c.as_tobject().GetTitle()
-}
-
-func (c *dataMemberImpl) InheritsFrom(clsname string) bool {
-	return c.as_tobject().InheritsFrom(clsname)
-}
-
-func (c *dataMemberImpl) Print(option Option) {
-	c.as_tobject().Print(option)
 }
 
 // EOF

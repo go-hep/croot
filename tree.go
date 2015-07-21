@@ -56,41 +56,9 @@ type Tree interface {
 	Write(name string, option, bufsize int) int
 }
 
-type tree_impl struct {
+type treeImpl struct {
 	c        C.CRoot_Tree
 	branches map[string]*gobranch
-}
-
-func (t *tree_impl) cptr() C.CRoot_Object {
-	return (C.CRoot_Object)(t.c)
-}
-
-func (t *tree_impl) as_tobject() *object_impl {
-	return &object_impl{t.cptr()}
-}
-
-func (t *tree_impl) ClassName() string {
-	return t.as_tobject().ClassName()
-}
-
-func (t *tree_impl) Clone(opt Option) Object {
-	return t.as_tobject().Clone(opt)
-}
-
-func (t *tree_impl) FindObject(name string) Object {
-	return t.as_tobject().FindObject(name)
-}
-
-func (t *tree_impl) GetName() string {
-	return t.as_tobject().GetName()
-}
-
-func (t *tree_impl) GetTitle() string {
-	return t.as_tobject().GetTitle()
-}
-
-func (t *tree_impl) InheritsFrom(clsname string) bool {
-	return t.as_tobject().InheritsFrom(clsname)
 }
 
 type gobranch struct {
@@ -99,10 +67,10 @@ type gobranch struct {
 	cptr  unsafe.Pointer // pointer to C-value buffer
 	addr  unsafe.Pointer // address of that C-value buffer
 	valid bool           // whether the branch has been correctly connected to the Tree C-buffer
-	br    *branch_impl
+	br    *branchImpl
 }
 
-func (br *gobranch) get_c_branch(t *tree_impl, name string) unsafe.Pointer {
+func (br *gobranch) get_c_branch(t *treeImpl, name string) unsafe.Pointer {
 	//fmt.Printf("::: get_c_branch...\n")
 	var ptr unsafe.Pointer
 
@@ -176,7 +144,7 @@ func (br *gobranch) get_c_branch(t *tree_impl, name string) unsafe.Pointer {
 	return ptr
 }
 
-func (br *gobranch) update_from_c(t *tree_impl, name string) error {
+func (br *gobranch) update_from_c(t *treeImpl, name string) error {
 	if !br.v.IsValid() {
 		return fmt.Errorf("croot.update_from_c: invalid branch [%v]", name)
 	}
@@ -206,16 +174,16 @@ func NewTree(name, title string, splitlevel int) Tree {
 	defer C.free(unsafe.Pointer(c_title))
 	t := C.CRoot_Tree_new(c_name, c_title, C.int32_t(splitlevel))
 	b := make(map[string]*gobranch)
-	return &tree_impl{c: t, branches: b}
+	return &treeImpl{c: t, branches: b}
 }
 
-func (t *tree_impl) Delete() {
+func (t *treeImpl) Delete() {
 	C.CRoot_Tree_delete(t.c)
 	t.c = nil
 	t.branches = nil
 }
 
-func (t *tree_impl) Branch(name string, obj interface{}, bufsiz, splitlevel int) (Branch, error) {
+func (t *treeImpl) Branch(name string, obj interface{}, bufsiz, splitlevel int) (Branch, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
@@ -239,13 +207,13 @@ func (t *tree_impl) Branch(name string, obj interface{}, bufsiz, splitlevel int)
 	defer C.free(unsafe.Pointer(c_classname))
 
 	b := C.CRoot_Tree_Branch(t.c, c_name, c_classname, br.addr, C.int32_t(bufsiz), C.int32_t(splitlevel))
-	br.br = &branch_impl{c: b}
+	br.br = &branchImpl{c: b}
 	t.branches[name] = br
 
 	return br.br, nil
 }
 
-func (t *tree_impl) Branch2(name string, objaddr interface{}, leaflist string, bufsiz int) (Branch, error) {
+func (t *treeImpl) Branch2(name string, objaddr interface{}, leaflist string, bufsiz int) (Branch, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
@@ -272,12 +240,12 @@ func (t *tree_impl) Branch2(name string, objaddr interface{}, leaflist string, b
 	defer C.free(unsafe.Pointer(c_leaflist))
 
 	b := C.CRoot_Tree_Branch2(t.c, c_name, br.addr, c_leaflist, C.int32_t(bufsiz))
-	br.br = &branch_impl{c: b}
+	br.br = &branchImpl{c: b}
 	t.branches[name] = br
 	return br.br, nil
 }
 
-func (t *tree_impl) Fill() (int, error) {
+func (t *treeImpl) Fill() (int, error) {
 	// fmt.Printf("=== fill ===...\n")
 	for _, br := range t.branches {
 		br.c.SetValue(br.v)
@@ -290,21 +258,21 @@ func (t *tree_impl) Fill() (int, error) {
 	return nb, nil
 }
 
-func (t *tree_impl) GetBranch(name string) Branch {
+func (t *treeImpl) GetBranch(name string) Branch {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	b := C.CRoot_Tree_GetBranch(t.c, c_name)
 	if b == nil {
 		return nil
 	}
-	return &branch_impl{c: b}
+	return &branchImpl{c: b}
 }
 
-func (t *tree_impl) GetEntries() int64 {
+func (t *treeImpl) GetEntries() int64 {
 	return int64(C.CRoot_Tree_GetEntries(t.c))
 }
 
-func (t *tree_impl) GetEntry(entry int64, getall int) int {
+func (t *treeImpl) GetEntry(entry int64, getall int) int {
 	//fmt.Fprintf(os.Stderr, ">> GetEntry(%v, %v)...\n", entry, getall)
 	nbytes := C.CRoot_Tree_GetEntry(t.c, C.int64_t(entry), C.int32_t(getall))
 	if nbytes > 0 {
@@ -319,19 +287,19 @@ func (t *tree_impl) GetEntry(entry int64, getall int) int {
 	return int(nbytes)
 }
 
-func (t *tree_impl) GetLeaf(name string) Leaf {
+func (t *treeImpl) GetLeaf(name string) Leaf {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	c := C.CRoot_Tree_GetLeaf(t.c, c_name)
 	if c == nil {
 		return nil
 	}
-	return &leaf_impl{c: c}
+	return &leafImpl{c: c}
 }
 
-func (t *tree_impl) GetListOfBranches() []Branch {
+func (t *treeImpl) GetListOfBranches() []Branch {
 	c := C.CRoot_Tree_GetListOfBranches(t.c)
-	objs := objarray_impl{c: c}
+	objs := objArrayImpl{c: c}
 	branches := make([]Branch, objs.GetEntries())
 	for i := 0; i < len(branches); i++ {
 		obj := objs.At(int64(i))
@@ -341,9 +309,9 @@ func (t *tree_impl) GetListOfBranches() []Branch {
 	return branches
 }
 
-func (t *tree_impl) GetListOfLeaves() []Leaf {
+func (t *treeImpl) GetListOfLeaves() []Leaf {
 	c := C.CRoot_Tree_GetListOfLeaves(t.c)
-	objs := objarray_impl{c: c}
+	objs := objArrayImpl{c: c}
 	leaves := make([]Leaf, objs.GetEntries())
 	for i := 0; i < len(leaves); i++ {
 		obj := objs.At(int64(i))
@@ -353,11 +321,11 @@ func (t *tree_impl) GetListOfLeaves() []Leaf {
 	return leaves
 }
 
-func (t *tree_impl) GetSelectedRows() int64 {
+func (t *treeImpl) GetSelectedRows() int64 {
 	return int64(C.CRoot_Tree_GetSelectedRows(t.c))
 }
 
-func (t *tree_impl) GetVal(i int) []float64 {
+func (t *treeImpl) GetVal(i int) []float64 {
 	c_data := C.CRoot_Tree_GetVal(t.c, C.int32_t(i))
 	sz := t.GetSelectedRows()
 	d := make([]float64, sz)
@@ -367,7 +335,7 @@ func (t *tree_impl) GetVal(i int) []float64 {
 	return d
 }
 
-func (t *tree_impl) GetV1() []float64 {
+func (t *treeImpl) GetV1() []float64 {
 	c_data := C.CRoot_Tree_GetV1(t.c)
 	sz := t.GetSelectedRows()
 	d := make([]float64, sz)
@@ -377,7 +345,7 @@ func (t *tree_impl) GetV1() []float64 {
 	return d
 }
 
-func (t *tree_impl) GetV2() []float64 {
+func (t *treeImpl) GetV2() []float64 {
 	c_data := C.CRoot_Tree_GetV2(t.c)
 	sz := t.GetSelectedRows()
 	d := make([]float64, sz)
@@ -387,7 +355,7 @@ func (t *tree_impl) GetV2() []float64 {
 	return d
 }
 
-func (t *tree_impl) GetV3() []float64 {
+func (t *treeImpl) GetV3() []float64 {
 	c_data := C.CRoot_Tree_GetV3(t.c)
 	sz := t.GetSelectedRows()
 	d := make([]float64, sz)
@@ -397,7 +365,7 @@ func (t *tree_impl) GetV3() []float64 {
 	return d
 }
 
-func (t *tree_impl) GetV4() []float64 {
+func (t *treeImpl) GetV4() []float64 {
 	c_data := C.CRoot_Tree_GetV4(t.c)
 	sz := t.GetSelectedRows()
 	d := make([]float64, sz)
@@ -407,7 +375,7 @@ func (t *tree_impl) GetV4() []float64 {
 	return d
 }
 
-func (t *tree_impl) GetW() []float64 {
+func (t *treeImpl) GetW() []float64 {
 	c_data := C.CRoot_Tree_GetW(t.c)
 	sz := t.GetSelectedRows()
 	d := make([]float64, sz)
@@ -417,21 +385,14 @@ func (t *tree_impl) GetW() []float64 {
 	return d
 }
 
-func (t *tree_impl) LoadTree(entry int64) int64 {
+func (t *treeImpl) LoadTree(entry int64) int64 {
 	return int64(C.CRoot_Tree_LoadTree(t.c, C.int64_t(entry)))
 }
 
-// func (t *tree_impl) MakeClass
-// func (t *tree_impl) Notify
+// func (t *treeImpl) MakeClass
+// func (t *treeImpl) Notify
 
-func (t *tree_impl) Print(option Option) {
-	c_option := C.CString(string(option))
-	defer C.free(unsafe.Pointer(c_option))
-
-	C.CRoot_Tree_Print(t.c, (*C.CRoot_Option)(c_option))
-}
-
-func (t *tree_impl) SetBranchAddress(name string, obj interface{}) int32 {
+func (t *treeImpl) SetBranchAddress(name string, obj interface{}) int32 {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
@@ -458,11 +419,15 @@ func (t *tree_impl) SetBranchAddress(name string, obj interface{}) int32 {
 
 	rc := C.CRoot_Tree_SetBranchAddress(t.c, c_name, br.addr, nil)
 
+	if t.branches == nil {
+		t.branches = make(map[string]*gobranch)
+	}
+
 	t.branches[name] = br
 	return int32(rc)
 }
 
-func (t *tree_impl) SetBranchStatus(name string, status bool) uint32 {
+func (t *treeImpl) SetBranchStatus(name string, status bool) uint32 {
 	c_found := C.uint32_t(0)
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
@@ -470,7 +435,7 @@ func (t *tree_impl) SetBranchStatus(name string, status bool) uint32 {
 	return uint32(c_found)
 }
 
-func (t *tree_impl) Write(name string, option, bufsize int) int {
+func (t *treeImpl) Write(name string, option, bufsize int) int {
 	if len(name) != 0 {
 		c_name := C.CString(name)
 		defer C.free(unsafe.Pointer(c_name))
@@ -479,11 +444,3 @@ func (t *tree_impl) Write(name string, option, bufsize int) int {
 	c_name := (*C.char)(unsafe.Pointer(nil))
 	return int(C.CRoot_Tree_Write(t.c, c_name, C.int32_t(option), C.int32_t(bufsize)))
 }
-
-func init() {
-	cnvmap["TTree"] = func(o c_object) Object {
-		return &tree_impl{c: (C.CRoot_Tree)(o.cptr())}
-	}
-}
-
-// EOF

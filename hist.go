@@ -51,7 +51,7 @@ func NewH1F(name, title string, nbins int, xlow, xup float64) H1F {
 		return nil
 	}
 
-	h := &h1f_impl{c: c}
+	h := &h1FImpl{c: c}
 	return h
 }
 
@@ -70,71 +70,35 @@ func NewH1FFrom(name, title string, data []float64) H1F {
 	if c == nil {
 		return nil
 	}
-	h := &h1f_impl{c: c}
+	h := &h1FImpl{c: c}
 	return h
 }
 
-type h1f_impl struct {
+type h1FImpl struct {
 	c C.CRoot_H1F
-}
-
-func (h *h1f_impl) cptr() C.CRoot_Object {
-	return (C.CRoot_Object)(h.c)
-}
-
-func (h *h1f_impl) as_tobject() *object_impl {
-	return &object_impl{h.cptr()}
-}
-
-func (h *h1f_impl) ClassName() string {
-	return h.as_tobject().ClassName()
-}
-
-func (h *h1f_impl) Clone(opt Option) Object {
-	return h.as_tobject().Clone(opt)
-}
-
-func (h *h1f_impl) FindObject(name string) Object {
-	return h.as_tobject().FindObject(name)
-}
-
-func (h *h1f_impl) GetName() string {
-	return h.as_tobject().GetName()
-}
-
-func (h *h1f_impl) GetTitle() string {
-	return h.as_tobject().GetTitle()
-}
-
-func (h *h1f_impl) InheritsFrom(clsname string) bool {
-	return h.as_tobject().InheritsFrom(clsname)
-}
-
-func (h *h1f_impl) Print(option Option) {
-	h.as_tobject().Print(option)
 }
 
 // -- H1F interface impl --
 
-func (h *h1f_impl) AddBinContent(bin int, weight float64) {
+func (h *h1FImpl) AddBinContent(bin int, weight float64) {
 	C.CRoot_H1F_AddBinContent(h.c, C.int32_t(bin), C.double(weight))
 }
 
-func (h *h1f_impl) GetBinContent(bin int) float64 {
+func (h *h1FImpl) GetBinContent(bin int) float64 {
 	o := C.CRoot_H1F_GetBinContent(h.c, C.int32_t(bin))
 	return float64(o)
 }
 
-func (h *h1f_impl) SetBinContent(bin int, value float64) {
+func (h *h1FImpl) SetBinContent(bin int, value float64) {
 	C.CRoot_H1F_SetBinContent(h.c, C.int32_t(bin), C.double(value))
 }
 
-func (h *h1f_impl) Fill(value, weight float64) int {
+func (h *h1FImpl) Fill(value, weight float64) int {
 	o := C.CRoot_H1F_Fill(h.c, C.double(value), C.double(weight))
 	return int(o)
 }
 
-func (h *h1f_impl) FillN(data [][2]float64) {
+func (h *h1FImpl) FillN(data [][2]float64) {
 	x := make([]float64, len(data))
 	w := make([]float64, len(data))
 	for i := range data {
@@ -154,57 +118,57 @@ func (h *h1f_impl) FillN(data [][2]float64) {
 	C.CRoot_H1F_FillN(h.c, C.int32_t(len(data)), c_x, c_w, stride)
 }
 
-func (h *h1f_impl) GetBin(bin int) float64 {
+func (h *h1FImpl) GetBin(bin int) float64 {
 	o := C.CRoot_H1F_GetBin(h.c, C.int32_t(bin))
 	return float64(o)
 }
 
-func (h *h1f_impl) GetBinCenter(bin int) float64 {
+func (h *h1FImpl) GetBinCenter(bin int) float64 {
 	o := C.CRoot_H1F_GetBinCenter(h.c, C.int32_t(bin))
 	return float64(o)
 }
 
-func (h *h1f_impl) GetBinError(bin int) float64 {
+func (h *h1FImpl) GetBinError(bin int) float64 {
 	o := C.CRoot_H1F_GetBinError(h.c, C.int32_t(bin))
 	return float64(o)
 }
 
-func (h *h1f_impl) GetBinErrorLow(bin int) float64 {
+func (h *h1FImpl) GetBinErrorLow(bin int) float64 {
 	o := C.CRoot_H1F_GetBinErrorLow(h.c, C.int32_t(bin))
 	return float64(o)
 }
 
-func (h *h1f_impl) GetBinErrorUp(bin int) float64 {
+func (h *h1FImpl) GetBinErrorUp(bin int) float64 {
 	o := C.CRoot_H1F_GetBinErrorUp(h.c, C.int32_t(bin))
 	return float64(o)
 }
 
-func (h *h1f_impl) GetBinWidth(bin int) float64 {
+func (h *h1FImpl) GetBinWidth(bin int) float64 {
 	o := C.CRoot_H1F_GetBinWidth(h.c, C.int32_t(bin))
 	return float64(o)
 }
 
-func (h *h1f_impl) GetEntries() float64 {
+func (h *h1FImpl) GetEntries() float64 {
 	o := C.CRoot_H1F_GetEntries(h.c)
 	return float64(o)
 }
 
-func (h *h1f_impl) GetMean() float64 {
+func (h *h1FImpl) GetMean() float64 {
 	o := C.CRoot_H1F_GetMean(h.c)
 	return float64(o)
 }
 
-func (h *h1f_impl) GetMeanError() float64 {
+func (h *h1FImpl) GetMeanError() float64 {
 	o := C.CRoot_H1F_GetMeanError(h.c)
 	return float64(o)
 }
 
-func (h *h1f_impl) GetRMS() float64 {
+func (h *h1FImpl) GetRMS() float64 {
 	o := C.CRoot_H1F_GetRMS(h.c)
 	return float64(o)
 }
 
-func (h *h1f_impl) GetRMSError() float64 {
+func (h *h1FImpl) GetRMSError() float64 {
 	o := C.CRoot_H1F_GetRMSError(h.c)
 	return float64(o)
 }

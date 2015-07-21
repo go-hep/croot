@@ -65,6 +65,11 @@ test_cmd = \
  CGO_CFLAGS=$(CGO_CFLAGS) \
  $(GOCMD) test $(GO_VERBOSE) -tags=$(gocroot_tag) -compiler=$(GO_COMPILER)
 
+clean_cmd = \
+ CGO_LDFLAGS=$(CGO_LDFLAGS) \
+ CGO_CFLAGS=$(CGO_CFLAGS) \
+ $(GOCMD) clean $(GO_VERBOSE) -tags=$(gocroot_tag) -compiler=$(GO_COMPILER)
+
 cxx_croot_sources := \
  bindings/src/croot.cxx \
  bindings/src/croot_class.cxx \
@@ -119,8 +124,10 @@ test: install
 	@$(test_cmd) .
 
 clean:
+	@rm -f object_impl.go
 	@rm -f $(cxx_croot_objects)
 	@rm -f $(cxx_croot_dicts) $(cxx_croot_dict_objects) $(cxx_croot_dict_pch)
 	@rm -rf $(INSTALL_LIBDIR)
 	@rm -rf $(INSTALL_DIR)/github.com/go-hep/croot
 	@rm -rf $(INSTALL_DIR)/github.com/go-hep/croot.a
+	@$(clean_cmd) ./...

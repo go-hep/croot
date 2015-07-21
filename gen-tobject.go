@@ -5,9 +5,87 @@ package main
 import (
 	"log"
 	"os"
+	"os/exec"
 	"strings"
 	"text/template"
 )
+
+var (
+	TObjects = []Type{
+		{Name: "branchImpl", Var: "br"},
+		{Name: "branchElementImpl", Var: "be"},
+		{Name: "classImpl", Var: "c"},
+		{Name: "dataMemberImpl", Var: "mbr"},
+		{Name: "fileImpl", Var: "f"},
+		{Name: "h1FImpl", Var: "h"},
+		{Name: "leafImpl", Var: "leaf"},
+		{Name: "leafDImpl", Var: "leaf"},
+		{Name: "leafFImpl", Var: "leaf"},
+		{Name: "leafIImpl", Var: "leaf"},
+		{Name: "leafOImpl", Var: "leaf"},
+		{Name: "objArrayImpl", Var: "obj"},
+		{Name: "randomImpl", Var: "rndm"},
+		{
+			Name: "treeImpl",
+			Var:  "tree",
+			PrintImpl: `func (t *treeImpl) Print(option Option) {
+	coption := C.CString(string(option))
+	defer C.free(unsafe.Pointer(coption))
+
+	C.CRoot_Tree_Print(t.c, (*C.CRoot_Option)(coption))
+}`,
+		},
+	}
+)
+
+type Type struct {
+	Name string
+	Var  string
+
+	PrintImpl string
+}
+
+func (t Type) ROOTType() string {
+	return "T" + strings.Title(t.Name)[:len(t.Name)-len("impl")]
+}
+
+func (t Type) CRootType() string {
+	return "CRoot_" + strings.Title(t.Name)[:len(t.Name)-len("impl")]
+}
+
+func main() {
+	f, err := os.Create("object_impl.go")
+	if err != nil {
+		log.Fatalf("error creating [object_impl.go]: %v\n", err)
+	}
+	defer f.Close()
+
+	tmpl, err := template.New("tobjects").Parse(tmplTObject)
+	if err != nil {
+		log.Fatalf("error parsing template: %v\n", err)
+	}
+
+	err = tmpl.Execute(f, TObjects)
+	if err != nil {
+		log.Fatalf("error generating TObject implementation: %v\n",
+			err,
+		)
+	}
+
+	err = f.Close()
+	if err != nil {
+		log.Fatalf("error closing [%s]: %v\n", f.Name(), err)
+	}
+
+	cmd := exec.Command("gofmt", "-w", f.Name())
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		log.Fatalf("error gofmt-ing [%s]: %v\n", f.Name(), err)
+	}
+}
 
 const tmplTObject = `// automatically generated.
 // DO NOT EDIT
@@ -30,12 +108,12 @@ import (
 // --- TObject impl for {{.Name}} ({{.ROOTType}}) ---
 //
 
-func ({{.Var}} *{{.Name}}) cptr() {{.Var}}.CRoot_Object {
-	return ({{.Var}}.CRoot_Object)({{.Var}}.c)
+func ({{.Var}} *{{.Name}}) cptr() C.CRoot_Object {
+	return (C.CRoot_Object)({{.Var}}.c)
 }
 
-func ({{.Var}} *{{.Name}}) as_tobject() *object_impl {
-	return &object_impl{ {{.Var}}.cptr() }
+func ({{.Var}} *{{.Name}}) as_tobject() *objectImpl {
+	return &objectImpl{ {{.Var}}.cptr() }
 }
 
 func ({{.Var}} *{{.Name}}) ClassName() string {
@@ -62,9 +140,10 @@ func ({{.Var}} *{{.Name}}) InheritsFrom(clsname string) bool {
 	return {{.Var}}.as_tobject().InheritsFrom(clsname)
 }
 
-func ({{.Var}} *{{.Name}}) Print(option Option) {
+{{if .PrintImpl}}{{.PrintImpl}}{{else}}func ({{.Var}} *{{.Name}}) Print(option Option) {
 	{{.Var}}.as_tobject().Print(option)
 }
+{{end}}
 
 {{end}}
 
@@ -77,49 +156,3 @@ func init() {
 	{{end}}
 }
 `
-
-var (
-	TObjects = []Type{
-		{Name: "branchImpl", Var: "br"},
-		{Name: "branchElementImpl", Var: "be"},
-		{Name: "classImpl", Var: "c"},
-		{Name: "dataMemberImpl", Var: "mbr"},
-		{Name: "fileImpl", Var: "f"},
-		{Name: "h1fImpl", Var: "h"},
-		{Name: "leafImpl", Var: "leaf"},
-		{Name: "leafDImpl", Var: "leaf"},
-		{Name: "leafFImpl", Var: "leaf"},
-		{Name: "leafIImpl", Var: "leaf"},
-		{Name: "leafOImpl", Var: "leaf"},
-		{Name: "objArrayImpl", Var: "obj"},
-		{Name: "randomImpl", Var: "rndm"},
-		{Name: "treeImpl", Var: "tree"},
-	}
-)
-
-type Type struct {
-	Name string
-	Var  string
-}
-
-func (t Type) ROOTType() string {
-	return "T" + strings.Title(t.Name)[:len(t.Name)-len("impl")]
-}
-
-func (t Type) CRootType() string {
-	return "CRoot_" + strings.Title(t.Name)[:len(t.Name)-len("impl")]
-}
-
-func main() {
-	tmpl, err := template.New("tobjects").Parse(tmplTObject)
-	if err != nil {
-		log.Fatalf("error parsing template: %v\n", err)
-	}
-
-	err = tmpl.Execute(os.Stdout, TObjects)
-	if err != nil {
-		log.Fatalf("error generating TObject implementation: %v\n",
-			err,
-		)
-	}
-}

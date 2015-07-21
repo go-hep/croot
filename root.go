@@ -24,7 +24,7 @@ func (r *ROOT) GetFile(name string) File {
 	if c == nil {
 		return nil
 	}
-	return &file_impl{c}
+	return &fileImpl{c}
 }
 
 func init() {

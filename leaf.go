@@ -19,77 +19,41 @@ type Leaf interface {
 	SetAddress(addr unsafe.Pointer)
 }
 
-type leaf_impl struct {
+type leafImpl struct {
 	c C.CRoot_Leaf
 }
 
-func (l *leaf_impl) cptr() C.CRoot_Object {
-	return (C.CRoot_Object)(l.c)
-}
-
-func (l *leaf_impl) as_tobject() *object_impl {
-	return &object_impl{l.cptr()}
-}
-
-func (l *leaf_impl) ClassName() string {
-	return l.as_tobject().ClassName()
-}
-
-func (l *leaf_impl) Clone(opt Option) Object {
-	return l.as_tobject().Clone(opt)
-}
-
-func (l *leaf_impl) FindObject(name string) Object {
-	return l.as_tobject().FindObject(name)
-}
-
-func (l *leaf_impl) GetBranch() Branch {
+func (l *leafImpl) GetBranch() Branch {
 	c := C.CRoot_Leaf_GetBranch(l.c)
 	if c == nil {
 		return nil
 	}
-	return &branch_impl{c: c}
+	return &branchImpl{c: c}
 }
 
-func (l *leaf_impl) GetName() string {
-	return l.as_tobject().GetName()
-}
-
-func (l *leaf_impl) GetTitle() string {
-	return l.as_tobject().GetTitle()
-}
-
-func (l *leaf_impl) InheritsFrom(clsname string) bool {
-	return l.as_tobject().InheritsFrom(clsname)
-}
-
-func (l *leaf_impl) Print(option Option) {
-	l.as_tobject().Print(option)
-}
-
-func (l *leaf_impl) GetLenStatic() int {
+func (l *leafImpl) GetLenStatic() int {
 	return int(C.CRoot_Leaf_GetLenStatic(l.c))
 }
 
-func (l *leaf_impl) GetLeafCount() Leaf {
+func (l *leafImpl) GetLeafCount() Leaf {
 	c := C.CRoot_Leaf_GetLeafCount(l.c)
-	obj := object_impl{c: (C.CRoot_Object)(c)}
+	obj := objectImpl{c: (C.CRoot_Object)(c)}
 	return to_gocroot(&obj).(Leaf)
 }
 
-func (l *leaf_impl) GetTypeName() string {
+func (l *leafImpl) GetTypeName() string {
 	c_str := C.CRoot_Leaf_GetTypeName(l.c)
 	// we do NOT own c_str
 	// defer C.free(unsafe.Point(c_str))
 	return C.GoString(c_str)
 }
 
-func (l *leaf_impl) GetValuePointer() uintptr {
+func (l *leafImpl) GetValuePointer() uintptr {
 	ptr := C.CRoot_Leaf_GetValuePointer(l.c)
 	return uintptr(ptr)
 }
 
-func (l *leaf_impl) SetAddress(addr unsafe.Pointer) {
+func (l *leafImpl) SetAddress(addr unsafe.Pointer) {
 	C.CRoot_Leaf_SetAddress(l.c, addr)
 }
 
@@ -99,74 +63,38 @@ type LeafI interface {
 	GetValue(idx int) float64
 }
 
-type leaf_i_impl struct {
+type leafIImpl struct {
 	c C.CRoot_LeafI
 }
 
-func (l *leaf_i_impl) GetValue(idx int) float64 {
+func (l *leafIImpl) GetValue(idx int) float64 {
 	o := C.CRoot_LeafI_GetValue(l.c, C.int(idx))
 	return float64(o)
 }
 
-func (l *leaf_i_impl) cptr() C.CRoot_Object {
-	return (C.CRoot_Object)(l.c)
-}
-
-func (l *leaf_i_impl) as_tobject() *object_impl {
-	return &object_impl{l.cptr()}
-}
-
-func (l *leaf_i_impl) ClassName() string {
-	return l.as_tobject().ClassName()
-}
-
-func (l *leaf_i_impl) Clone(opt Option) Object {
-	return l.as_tobject().Clone(opt)
-}
-
-func (l *leaf_i_impl) FindObject(name string) Object {
-	return l.as_tobject().FindObject(name)
-}
-
-func (l *leaf_i_impl) GetName() string {
-	return l.as_tobject().GetName()
-}
-
-func (l *leaf_i_impl) GetTitle() string {
-	return l.as_tobject().GetTitle()
-}
-
-func (l *leaf_i_impl) InheritsFrom(clsname string) bool {
-	return l.as_tobject().InheritsFrom(clsname)
-}
-
-func (l *leaf_i_impl) Print(option Option) {
-	l.as_tobject().Print(option)
-}
-
-func (l *leaf_i_impl) GetLenStatic() int {
+func (l *leafIImpl) GetLenStatic() int {
 	return int(C.CRoot_Leaf_GetLenStatic(l.as_tleaf()))
 }
 
-func (l *leaf_i_impl) GetLeafCount() Leaf {
+func (l *leafIImpl) GetLeafCount() Leaf {
 	c := C.CRoot_Leaf_GetLeafCount(l.as_tleaf())
-	obj := object_impl{c: (C.CRoot_Object)(c)}
+	obj := objectImpl{c: (C.CRoot_Object)(c)}
 	return to_gocroot(&obj).(Leaf)
 }
 
-func (l *leaf_i_impl) GetTypeName() string {
+func (l *leafIImpl) GetTypeName() string {
 	c_str := C.CRoot_Leaf_GetTypeName(l.as_tleaf())
 	// we do NOT own c_str
 	// defer C.free(unsafe.Point(c_str))
 	return C.GoString(c_str)
 }
 
-func (l *leaf_i_impl) GetValuePointer() uintptr {
+func (l *leafIImpl) GetValuePointer() uintptr {
 	ptr := C.CRoot_Leaf_GetValuePointer(l.as_tleaf())
 	return uintptr(ptr)
 }
 
-func (l *leaf_i_impl) as_tleaf() C.CRoot_Leaf {
+func (l *leafIImpl) as_tleaf() C.CRoot_Leaf {
 	return (C.CRoot_Leaf)(unsafe.Pointer(l.c))
 }
 
@@ -176,74 +104,38 @@ type LeafF interface {
 	GetValue(idx int) float64
 }
 
-type leaf_f_impl struct {
+type leafFImpl struct {
 	c C.CRoot_LeafF
 }
 
-func (l *leaf_f_impl) GetValue(idx int) float64 {
+func (l *leafFImpl) GetValue(idx int) float64 {
 	o := C.CRoot_LeafF_GetValue(l.c, C.int(idx))
 	return float64(o)
 }
 
-func (l *leaf_f_impl) cptr() C.CRoot_Object {
-	return (C.CRoot_Object)(l.c)
-}
-
-func (l *leaf_f_impl) as_tobject() *object_impl {
-	return &object_impl{l.cptr()}
-}
-
-func (l *leaf_f_impl) ClassName() string {
-	return l.as_tobject().ClassName()
-}
-
-func (l *leaf_f_impl) Clone(opt Option) Object {
-	return l.as_tobject().Clone(opt)
-}
-
-func (l *leaf_f_impl) FindObject(name string) Object {
-	return l.as_tobject().FindObject(name)
-}
-
-func (l *leaf_f_impl) GetName() string {
-	return l.as_tobject().GetName()
-}
-
-func (l *leaf_f_impl) GetTitle() string {
-	return l.as_tobject().GetTitle()
-}
-
-func (l *leaf_f_impl) InheritsFrom(clsname string) bool {
-	return l.as_tobject().InheritsFrom(clsname)
-}
-
-func (l *leaf_f_impl) Print(option Option) {
-	l.as_tobject().Print(option)
-}
-
-func (l *leaf_f_impl) GetLenStatic() int {
+func (l *leafFImpl) GetLenStatic() int {
 	return int(C.CRoot_Leaf_GetLenStatic(l.as_tleaf()))
 }
 
-func (l *leaf_f_impl) GetLeafCount() Leaf {
+func (l *leafFImpl) GetLeafCount() Leaf {
 	c := C.CRoot_Leaf_GetLeafCount(l.as_tleaf())
-	obj := object_impl{c: (C.CRoot_Object)(c)}
+	obj := objectImpl{c: (C.CRoot_Object)(c)}
 	return to_gocroot(&obj).(Leaf)
 }
 
-func (l *leaf_f_impl) GetTypeName() string {
+func (l *leafFImpl) GetTypeName() string {
 	c_str := C.CRoot_Leaf_GetTypeName(l.as_tleaf())
 	// we do NOT own c_str
 	// defer C.free(unsafe.Point(c_str))
 	return C.GoString(c_str)
 }
 
-func (l *leaf_f_impl) GetValuePointer() uintptr {
+func (l *leafFImpl) GetValuePointer() uintptr {
 	ptr := C.CRoot_Leaf_GetValuePointer(l.as_tleaf())
 	return uintptr(ptr)
 }
 
-func (l *leaf_f_impl) as_tleaf() C.CRoot_Leaf {
+func (l *leafFImpl) as_tleaf() C.CRoot_Leaf {
 	return (C.CRoot_Leaf)(unsafe.Pointer(l.c))
 }
 
@@ -253,74 +145,38 @@ type LeafD interface {
 	GetValue(idx int) float64
 }
 
-type leaf_d_impl struct {
+type leafDImpl struct {
 	c C.CRoot_LeafD
 }
 
-func (l *leaf_d_impl) GetValue(idx int) float64 {
+func (l *leafDImpl) GetValue(idx int) float64 {
 	o := C.CRoot_LeafD_GetValue(l.c, C.int(idx))
 	return float64(o)
 }
 
-func (l *leaf_d_impl) cptr() C.CRoot_Object {
-	return (C.CRoot_Object)(l.c)
-}
-
-func (l *leaf_d_impl) as_tobject() *object_impl {
-	return &object_impl{l.cptr()}
-}
-
-func (l *leaf_d_impl) ClassName() string {
-	return l.as_tobject().ClassName()
-}
-
-func (l *leaf_d_impl) Clone(opt Option) Object {
-	return l.as_tobject().Clone(opt)
-}
-
-func (l *leaf_d_impl) FindObject(name string) Object {
-	return l.as_tobject().FindObject(name)
-}
-
-func (l *leaf_d_impl) GetName() string {
-	return l.as_tobject().GetName()
-}
-
-func (l *leaf_d_impl) GetTitle() string {
-	return l.as_tobject().GetTitle()
-}
-
-func (l *leaf_d_impl) InheritsFrom(clsname string) bool {
-	return l.as_tobject().InheritsFrom(clsname)
-}
-
-func (l *leaf_d_impl) Print(option Option) {
-	l.as_tobject().Print(option)
-}
-
-func (l *leaf_d_impl) GetLenStatic() int {
+func (l *leafDImpl) GetLenStatic() int {
 	return int(C.CRoot_Leaf_GetLenStatic(l.as_tleaf()))
 }
 
-func (l *leaf_d_impl) GetLeafCount() Leaf {
+func (l *leafDImpl) GetLeafCount() Leaf {
 	c := C.CRoot_Leaf_GetLeafCount(l.as_tleaf())
-	obj := object_impl{c: (C.CRoot_Object)(c)}
+	obj := objectImpl{c: (C.CRoot_Object)(c)}
 	return to_gocroot(&obj).(Leaf)
 }
 
-func (l *leaf_d_impl) GetTypeName() string {
+func (l *leafDImpl) GetTypeName() string {
 	c_str := C.CRoot_Leaf_GetTypeName(l.as_tleaf())
 	// we do NOT own c_str
 	// defer C.free(unsafe.Point(c_str))
 	return C.GoString(c_str)
 }
 
-func (l *leaf_d_impl) GetValuePointer() uintptr {
+func (l *leafDImpl) GetValuePointer() uintptr {
 	ptr := C.CRoot_Leaf_GetValuePointer(l.as_tleaf())
 	return uintptr(ptr)
 }
 
-func (l *leaf_d_impl) as_tleaf() C.CRoot_Leaf {
+func (l *leafDImpl) as_tleaf() C.CRoot_Leaf {
 	return (C.CRoot_Leaf)(unsafe.Pointer(l.c))
 }
 
@@ -330,93 +186,37 @@ type LeafO interface {
 	GetValue(idx int) float64
 }
 
-type leaf_o_impl struct {
+type leafOImpl struct {
 	c C.CRoot_LeafO
 }
 
-func (l *leaf_o_impl) GetValue(idx int) float64 {
+func (l *leafOImpl) GetValue(idx int) float64 {
 	o := C.CRoot_LeafO_GetValue(l.c, C.int(idx))
 	return float64(o)
 }
 
-func (l *leaf_o_impl) cptr() C.CRoot_Object {
-	return (C.CRoot_Object)(l.c)
-}
-
-func (l *leaf_o_impl) as_tobject() *object_impl {
-	return &object_impl{l.cptr()}
-}
-
-func (l *leaf_o_impl) ClassName() string {
-	return l.as_tobject().ClassName()
-}
-
-func (l *leaf_o_impl) Clone(opt Option) Object {
-	return l.as_tobject().Clone(opt)
-}
-
-func (l *leaf_o_impl) FindObject(name string) Object {
-	return l.as_tobject().FindObject(name)
-}
-
-func (l *leaf_o_impl) GetName() string {
-	return l.as_tobject().GetName()
-}
-
-func (l *leaf_o_impl) GetTitle() string {
-	return l.as_tobject().GetTitle()
-}
-
-func (l *leaf_o_impl) InheritsFrom(clsname string) bool {
-	return l.as_tobject().InheritsFrom(clsname)
-}
-
-func (l *leaf_o_impl) Print(option Option) {
-	l.as_tobject().Print(option)
-}
-
-func (l *leaf_o_impl) GetLenStatic() int {
+func (l *leafOImpl) GetLenStatic() int {
 	return int(C.CRoot_Leaf_GetLenStatic(l.as_tleaf()))
 }
 
-func (l *leaf_o_impl) GetLeafCount() Leaf {
+func (l *leafOImpl) GetLeafCount() Leaf {
 	c := C.CRoot_Leaf_GetLeafCount(l.as_tleaf())
-	obj := object_impl{c: (C.CRoot_Object)(c)}
+	obj := objectImpl{c: (C.CRoot_Object)(c)}
 	return to_gocroot(&obj).(Leaf)
 }
 
-func (l *leaf_o_impl) GetTypeName() string {
+func (l *leafOImpl) GetTypeName() string {
 	c_str := C.CRoot_Leaf_GetTypeName(l.as_tleaf())
 	// we do NOT own c_str
 	// defer C.free(unsafe.Point(c_str))
 	return C.GoString(c_str)
 }
 
-func (l *leaf_o_impl) GetValuePointer() uintptr {
+func (l *leafOImpl) GetValuePointer() uintptr {
 	ptr := C.CRoot_Leaf_GetValuePointer(l.as_tleaf())
 	return uintptr(ptr)
 }
 
-func (l *leaf_o_impl) as_tleaf() C.CRoot_Leaf {
+func (l *leafOImpl) as_tleaf() C.CRoot_Leaf {
 	return (C.CRoot_Leaf)(unsafe.Pointer(l.c))
 }
-
-func init() {
-	cnvmap["TLeaf"] = func(o c_object) Object {
-		return &leaf_impl{c: (C.CRoot_Leaf)(o.cptr())}
-	}
-	cnvmap["TLeafI"] = func(o c_object) Object {
-		return &leaf_i_impl{c: (C.CRoot_LeafI)(o.cptr())}
-	}
-	cnvmap["TLeafF"] = func(o c_object) Object {
-		return &leaf_f_impl{c: (C.CRoot_LeafF)(o.cptr())}
-	}
-	cnvmap["TLeafD"] = func(o c_object) Object {
-		return &leaf_d_impl{c: (C.CRoot_LeafD)(o.cptr())}
-	}
-	cnvmap["TLeafO"] = func(o c_object) Object {
-		return &leaf_o_impl{c: (C.CRoot_LeafO)(o.cptr())}
-	}
-}
-
-// EOF

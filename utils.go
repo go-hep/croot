@@ -39,7 +39,7 @@ func to_gocroot(o c_object) Object {
 	cnv, ok := cnvmap[clsname]
 	if !ok {
 		fmt.Printf("**warning** type dispatch not implemented for [%s]\n", clsname)
-		return &object_impl{c: o.cptr()}
+		return &objectImpl{c: o.cptr()}
 	}
 	return cnv(o)
 }
