@@ -41,8 +41,29 @@ type DataMember interface {
 	IsSTLContainer() STLType
 }
 
-// FIXME(sbinet) defined in TDictionary (kList, kVector, ...)
+// STLType describes STL collections and some std classes.
 type STLType int
+
+// STLType values defined in ESTLType.h
+const (
+	STLT_NotSTL               STLType = 0
+	STLT_STLvector                    = 1
+	STLT_STLlist                      = 2
+	STLT_STLdeque                     = 3
+	STLT_STLmap                       = 4
+	STLT_STLmultimap                  = 5
+	STLT_STLset                       = 6
+	STLT_STLmultiset                  = 7
+	STLT_STLbitset                    = 8
+	STLT_STLforwardlist               = 9
+	STLT_STLunorderedset              = 10
+	STLT_STLunorderedmultiset         = 11
+	STLT_STLunorderedmap              = 12
+	STLT_STLunorderedmultimap         = 13
+	STLT_STLend                       = 14
+	STLT_STLany                       = 300 /* TVirtualStreamerInfo::kSTL */
+	STLT_STLstring                    = 365 /* TVirtualStreamerInfo::kSTLstring */
+)
 
 // DataType provides basic data type description.
 type DataType interface {
