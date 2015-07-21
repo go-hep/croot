@@ -54,10 +54,10 @@ type classImpl struct {
 }
 
 func GetClass(name string) Class {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
 
-	c := C.CRoot_Class_GetClass(c_name)
+	c := C.CRoot_Class_GetClass(cname)
 	if c == nil {
 		return nil
 	}

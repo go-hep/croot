@@ -33,8 +33,8 @@ func (b *branchImpl) GetAddress() uintptr {
 // }
 
 func (b *branchImpl) GetClassName() string {
-	c_str := C.CRoot_Branch_GetClassName(b.c)
-	return C.GoString(c_str)
+	cstr := C.CRoot_Branch_GetClassName(b.c)
+	return C.GoString(cstr)
 }
 
 func (b *branchImpl) GetListOfLeaves() []Leaf {
@@ -50,9 +50,9 @@ func (b *branchImpl) GetListOfLeaves() []Leaf {
 }
 
 func (b *branchImpl) GetLeaf(name string) Leaf {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-	c := C.CRoot_Branch_GetLeaf(b.c, c_name)
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	c := C.CRoot_Branch_GetLeaf(b.c, cname)
 	if c == nil {
 		return nil
 	}

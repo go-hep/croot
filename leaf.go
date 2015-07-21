@@ -42,10 +42,10 @@ func (l *leafImpl) GetLeafCount() Leaf {
 }
 
 func (l *leafImpl) GetTypeName() string {
-	c_str := C.CRoot_Leaf_GetTypeName(l.c)
-	// we do NOT own c_str
-	// defer C.free(unsafe.Point(c_str))
-	return C.GoString(c_str)
+	cstr := C.CRoot_Leaf_GetTypeName(l.c)
+	// we do NOT own cstr
+	// defer C.free(unsafe.Point(cstr))
+	return C.GoString(cstr)
 }
 
 func (l *leafImpl) GetValuePointer() uintptr {
@@ -83,10 +83,10 @@ func (l *leafIImpl) GetLeafCount() Leaf {
 }
 
 func (l *leafIImpl) GetTypeName() string {
-	c_str := C.CRoot_Leaf_GetTypeName(l.as_tleaf())
-	// we do NOT own c_str
-	// defer C.free(unsafe.Point(c_str))
-	return C.GoString(c_str)
+	cstr := C.CRoot_Leaf_GetTypeName(l.as_tleaf())
+	// we do NOT own cstr
+	// defer C.free(unsafe.Point(cstr))
+	return C.GoString(cstr)
 }
 
 func (l *leafIImpl) GetValuePointer() uintptr {
@@ -124,10 +124,10 @@ func (l *leafFImpl) GetLeafCount() Leaf {
 }
 
 func (l *leafFImpl) GetTypeName() string {
-	c_str := C.CRoot_Leaf_GetTypeName(l.as_tleaf())
-	// we do NOT own c_str
-	// defer C.free(unsafe.Point(c_str))
-	return C.GoString(c_str)
+	cstr := C.CRoot_Leaf_GetTypeName(l.as_tleaf())
+	// we do NOT own cstr
+	// defer C.free(unsafe.Point(cstr))
+	return C.GoString(cstr)
 }
 
 func (l *leafFImpl) GetValuePointer() uintptr {
@@ -165,10 +165,10 @@ func (l *leafDImpl) GetLeafCount() Leaf {
 }
 
 func (l *leafDImpl) GetTypeName() string {
-	c_str := C.CRoot_Leaf_GetTypeName(l.as_tleaf())
-	// we do NOT own c_str
-	// defer C.free(unsafe.Point(c_str))
-	return C.GoString(c_str)
+	cstr := C.CRoot_Leaf_GetTypeName(l.as_tleaf())
+	// we do NOT own cstr
+	// defer C.free(unsafe.Point(cstr))
+	return C.GoString(cstr)
 }
 
 func (l *leafDImpl) GetValuePointer() uintptr {
@@ -206,10 +206,10 @@ func (l *leafOImpl) GetLeafCount() Leaf {
 }
 
 func (l *leafOImpl) GetTypeName() string {
-	c_str := C.CRoot_Leaf_GetTypeName(l.as_tleaf())
-	// we do NOT own c_str
-	// defer C.free(unsafe.Point(c_str))
-	return C.GoString(c_str)
+	cstr := C.CRoot_Leaf_GetTypeName(l.as_tleaf())
+	// we do NOT own cstr
+	// defer C.free(unsafe.Point(cstr))
+	return C.GoString(cstr)
 }
 
 func (l *leafOImpl) GetValuePointer() uintptr {

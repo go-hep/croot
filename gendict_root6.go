@@ -97,10 +97,10 @@ func gendict(t reflect.Type) {
 }
 
 func cling_gendict(code string) error {
-	c_code := C.CString(code)
-	defer C.free(unsafe.Pointer(c_code))
+	ccode := C.CString(code)
+	defer C.free(unsafe.Pointer(ccode))
 
-	ok := c2bool(C.CRoot_Interpreter_LoadText(C.CRoot_gInterpreter, c_code))
+	ok := c2bool(C.CRoot_Interpreter_LoadText(C.CRoot_gInterpreter, ccode))
 	if !ok {
 		return fmt.Errorf("croot: could not generate dictionary")
 	}

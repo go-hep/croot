@@ -38,13 +38,13 @@ type H1F interface {
 }
 
 func NewH1F(name, title string, nbins int, xlow, xup float64) H1F {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-	c_title := C.CString(title)
-	defer C.free(unsafe.Pointer(c_title))
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	ctitle := C.CString(title)
+	defer C.free(unsafe.Pointer(ctitle))
 
 	c := C.CRoot_H1F_new(
-		c_name, c_title,
+		cname, ctitle,
 		C.int32_t(nbins), C.double(xlow), C.double(xup),
 	)
 	if c == nil {
@@ -56,17 +56,17 @@ func NewH1F(name, title string, nbins int, xlow, xup float64) H1F {
 }
 
 func NewH1FFrom(name, title string, data []float64) H1F {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-	c_title := C.CString(title)
-	defer C.free(unsafe.Pointer(c_title))
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	ctitle := C.CString(title)
+	defer C.free(unsafe.Pointer(ctitle))
 
 	val := reflect.ValueOf(&data)
 	slice := (*reflect.SliceHeader)(unsafe.Pointer(val.Pointer()))
 
 	nbins := C.int32_t(len(data))
-	c_data := (*C.double)(unsafe.Pointer(slice.Data))
-	c := C.CRoot_H1F_new2(c_name, c_title, nbins, c_data)
+	cdata := (*C.double)(unsafe.Pointer(slice.Data))
+	c := C.CRoot_H1F_new2(cname, ctitle, nbins, cdata)
 	if c == nil {
 		return nil
 	}
@@ -108,14 +108,14 @@ func (h *h1FImpl) FillN(data [][2]float64) {
 
 	x_val := reflect.ValueOf(&x)
 	x_slice := (*reflect.SliceHeader)(unsafe.Pointer(x_val.Pointer()))
-	c_x := (*C.double)(unsafe.Pointer(x_slice.Data))
+	cx := (*C.double)(unsafe.Pointer(x_slice.Data))
 
 	w_val := reflect.ValueOf(&w)
 	w_slice := (*reflect.SliceHeader)(unsafe.Pointer(w_val.Pointer()))
-	c_w := (*C.double)(unsafe.Pointer(w_slice.Data))
+	cw := (*C.double)(unsafe.Pointer(w_slice.Data))
 
 	const stride = 1
-	C.CRoot_H1F_FillN(h.c, C.int32_t(len(data)), c_x, c_w, stride)
+	C.CRoot_H1F_FillN(h.c, C.int32_t(len(data)), cx, cw, stride)
 }
 
 func (h *h1FImpl) GetBin(bin int) float64 {

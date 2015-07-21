@@ -14,7 +14,7 @@ func RegisterType(v interface{}) {
 	gendict(t)
 }
 
-func follow_ptr(v reflect.Value) reflect.Value {
+func followPtr(v reflect.Value) reflect.Value {
 	for {
 		switch v.Kind() {
 		case reflect.Ptr:
@@ -29,7 +29,7 @@ func follow_ptr(v reflect.Value) reflect.Value {
 	}
 }
 
-func to_cxx_name(t reflect.Type) string {
+func toCxxName(t reflect.Type) string {
 	//return fmt.Sprintf("::golang::%s::%s", t.PkgPath(), t.Name())
 	return t.Name()
 }

@@ -8,23 +8,23 @@ import (
 	"github.com/go-hep/croot/cmem"
 )
 
-// cgoslice_t is a binary compatible memory representation of a Go slice
-type cgoslice_t struct {
+// cgoSliceType is a binary compatible memory representation of a Go slice
+type cgoSliceType struct {
 	Len  int
 	Cap  int
 	Data unsafe.Pointer
 }
 
-// cgoslice_t is a binary compatible memory representation of a Go string
-type cgostring_t struct {
+// cgoStrinType is a binary compatible memory representation of a Go string
+type cgoStringType struct {
 	Len  int
 	Data unsafe.Pointer
 }
 
-// go_converter translates back and forth b/w a Go value and its C counter-part
-type go_converter interface {
-	cnv_to_c(g reflect.Value, c cmem.Value) error
-	cnv_from_c(g reflect.Value, c cmem.Value) error
+// goConverter translates back and forth b/w a Go value and its C counter-part
+type goConverter interface {
+	cnvToC(g reflect.Value, c cmem.Value) error
+	cnvFromC(g reflect.Value, c cmem.Value) error
 
 	//get_c_ptr() unsafe.Pointer
 	//get_go_ptr() reflect.Value
@@ -33,23 +33,23 @@ type go_converter interface {
 	//get_go_addr() reflect.Value
 }
 
-func new_go_cnv_from_c(typename string) (go_converter, error) {
-	var cnv go_converter
+func newGoCnvFromC(typename string) (goConverter, error) {
+	var cnv goConverter
 	var err error
 
 	return cnv, err
 }
 
-type cnv_base_t struct {
+type cnvBaseType struct {
 	cptr unsafe.Pointer
 	gptr reflect.Value
 }
 
-type cnv_builtins_t struct {
+type cnvBuiltinsType struct {
 	//cnv_base_t
 }
 
-func (cnv cnv_builtins_t) cnv_to_c(gptr reflect.Value, cptr cmem.Value) error {
+func (cnv cnvBuiltinsType) cnvToC(gptr reflect.Value, cptr cmem.Value) error {
 	rt := gptr.Type()
 
 	switch rt.Kind() {
@@ -70,7 +70,7 @@ func (cnv cnv_builtins_t) cnv_to_c(gptr reflect.Value, cptr cmem.Value) error {
 	return nil
 }
 
-func (cnv *cnv_builtins_t) cnv_from_c(gptr reflect.Value, cptr cmem.Value) error {
+func (cnv *cnvBuiltinsType) cnvFromC(gptr reflect.Value, cptr cmem.Value) error {
 	rt := gptr.Type()
 
 	switch rt.Kind() {
@@ -91,14 +91,14 @@ func (cnv *cnv_builtins_t) cnv_from_c(gptr reflect.Value, cptr cmem.Value) error
 	return nil
 }
 
-type cnv_struct_t struct {
-	cnv_base_t
-	fields []go_converter
+type cnvStructType struct {
+	cnvBaseType
+	fields []goConverter
 }
 
-func (cnv *cnv_struct_t) cnv_to_c(gptr reflect.Value, cptr cmem.Value) error {
+func (cnv *cnvStructType) cnvToC(gptr reflect.Value, cptr cmem.Value) error {
 	for _, fcnv := range cnv.fields {
-		err := fcnv.cnv_to_c(gptr, cptr)
+		err := fcnv.cnvToC(gptr, cptr)
 		if err != nil {
 			return err
 		}
@@ -106,12 +106,12 @@ func (cnv *cnv_struct_t) cnv_to_c(gptr reflect.Value, cptr cmem.Value) error {
 	return nil
 }
 
-func (cnv *cnv_struct_t) cnv_from_c(gptr reflect.Value, cptr cmem.Value) error {
+func (cnv *cnvStructType) cnvFromC(gptr reflect.Value, cptr cmem.Value) error {
 
 	for i, fcnv := range cnv.fields {
-		g_field := gptr.Field(i)
-		c_field := cptr.Field(i)
-		err := fcnv.cnv_from_c(g_field, c_field)
+		gField := gptr.Field(i)
+		cfield := cptr.Field(i)
+		err := fcnv.cnvFromC(gField, cfield)
 		if err != nil {
 			return err
 		}
@@ -119,17 +119,17 @@ func (cnv *cnv_struct_t) cnv_from_c(gptr reflect.Value, cptr cmem.Value) error {
 	return nil
 }
 
-type cnv_slice_t struct {
-	cnv_base_t
-	elmt go_converter
+type cnvSliceType struct {
+	cnvBaseType
+	elmt goConverter
 }
 
-func (cnv *cnv_slice_t) cnv_to_c(gptr reflect.Value, cptr cmem.Value) error {
+func (cnv *cnvSliceType) cnvToC(gptr reflect.Value, cptr cmem.Value) error {
 	cptr.SetLen(gptr.Len())
 	for i := 0; i < gptr.NumField(); i++ {
-		g_elmt := gptr.Index(i)
-		c_elmt := cptr.Index(i)
-		err := cnv.elmt.cnv_to_c(g_elmt, c_elmt)
+		gElmt := gptr.Index(i)
+		celmt := cptr.Index(i)
+		err := cnv.elmt.cnvToC(gElmt, celmt)
 		if err != nil {
 			return err
 		}
@@ -137,12 +137,12 @@ func (cnv *cnv_slice_t) cnv_to_c(gptr reflect.Value, cptr cmem.Value) error {
 	return nil
 }
 
-func (cnv *cnv_slice_t) cnv_from_c(gptr reflect.Value, cptr cmem.Value) error {
+func (cnv *cnvSliceType) cnvFromC(gptr reflect.Value, cptr cmem.Value) error {
 	gptr.SetLen(cptr.Len())
 	for i := 0; i < gptr.NumField(); i++ {
-		g_elmt := gptr.Index(i)
-		c_elmt := cptr.Index(i)
-		err := cnv.elmt.cnv_from_c(g_elmt, c_elmt)
+		gElmt := gptr.Index(i)
+		celmt := cptr.Index(i)
+		err := cnv.elmt.cnvFromC(gElmt, celmt)
 		if err != nil {
 			return err
 		}

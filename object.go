@@ -29,14 +29,14 @@ func (o *objectImpl) cptr() C.CRoot_Object {
 }
 
 func (o *objectImpl) ClassName() string {
-	c_str := C.CRoot_Object_ClassName(o.c)
-	return C.GoString(c_str)
+	cstr := C.CRoot_Object_ClassName(o.c)
+	return C.GoString(cstr)
 }
 
 func (o *objectImpl) Clone(newname Option) Object {
-	c_str := C.CString(string(newname))
-	defer C.free(unsafe.Pointer(c_str))
-	newobj := C.CRoot_Object_Clone(o.c, c_str)
+	cstr := C.CString(string(newname))
+	defer C.free(unsafe.Pointer(cstr))
+	newobj := C.CRoot_Object_Clone(o.c, cstr)
 	if newobj == nil {
 		return nil
 	}
@@ -44,9 +44,9 @@ func (o *objectImpl) Clone(newname Option) Object {
 }
 
 func (o *objectImpl) FindObject(name string) Object {
-	c_str := C.CString(name)
-	defer C.free(unsafe.Pointer(c_str))
-	obj := C.CRoot_Object_FindObject(o.c, c_str)
+	cstr := C.CString(name)
+	defer C.free(unsafe.Pointer(cstr))
+	obj := C.CRoot_Object_FindObject(o.c, cstr)
 	if obj == nil {
 		return nil
 	}
@@ -54,29 +54,29 @@ func (o *objectImpl) FindObject(name string) Object {
 }
 
 func (o *objectImpl) GetName() string {
-	c_str := C.CRoot_Object_GetName(o.c)
+	cstr := C.CRoot_Object_GetName(o.c)
 	// we do not own c_str!!
 	//defer C.free(unsafe.Pointer(c_str))
-	return C.GoString(c_str)
+	return C.GoString(cstr)
 }
 
 func (o *objectImpl) GetTitle() string {
-	c_str := C.CRoot_Object_GetTitle(o.c)
+	cstr := C.CRoot_Object_GetTitle(o.c)
 	// we do not own c_str!!
 	//defer C.free(unsafe.Pointer(c_str))
-	return C.GoString(c_str)
+	return C.GoString(cstr)
 }
 
 func (o *objectImpl) InheritsFrom(clsname string) bool {
-	c_str := C.CString(clsname)
-	defer C.free(unsafe.Pointer(c_str))
-	return c2bool(C.CRoot_Object_InheritsFrom(o.c, c_str))
+	cstr := C.CString(clsname)
+	defer C.free(unsafe.Pointer(cstr))
+	return c2bool(C.CRoot_Object_InheritsFrom(o.c, cstr))
 }
 
 func (o *objectImpl) Print(option Option) {
-	c_option := C.CString(string(option))
-	defer C.free(unsafe.Pointer(c_option))
-	C.CRoot_Object_Print(o.c, (*C.CRoot_Option)(c_option))
+	copt := C.CString(string(option))
+	defer C.free(unsafe.Pointer(copt))
+	C.CRoot_Object_Print(o.c, (*C.CRoot_Option)(copt))
 }
 
 func init() {

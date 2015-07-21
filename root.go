@@ -17,10 +17,10 @@ type ROOT struct {
 var GRoot *ROOT = nil
 
 func (r *ROOT) GetFile(name string) File {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
 
-	c := C.CRoot_ROOT_GetFile(r.c, c_name)
+	c := C.CRoot_ROOT_GetFile(r.c, cname)
 	if c == nil {
 		return nil
 	}

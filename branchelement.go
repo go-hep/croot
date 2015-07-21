@@ -22,6 +22,6 @@ func (b *branchElementImpl) GetAddress() uintptr {
 }
 
 func (b *branchElementImpl) GetClassName() string {
-	c_str := C.CRoot_BranchElement_GetClassName(b.c)
-	return C.GoString(c_str)
+	cstr := C.CRoot_BranchElement_GetClassName(b.c)
+	return C.GoString(cstr)
 }

@@ -27,14 +27,14 @@ type fileImpl struct {
 }
 
 func OpenFile(name, option, title string, compress, netopt int) (File, error) {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-	c_option := C.CString(option)
-	defer C.free(unsafe.Pointer(c_option))
-	c_title := C.CString(title)
-	defer C.free(unsafe.Pointer(c_title))
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	copt := C.CString(option)
+	defer C.free(unsafe.Pointer(copt))
+	ctitle := C.CString(title)
+	defer C.free(unsafe.Pointer(ctitle))
 
-	f := C.CRoot_File_Open(c_name, (*C.CRoot_Option)(c_option), c_title, C.int32_t(compress), C.int32_t(netopt))
+	f := C.CRoot_File_Open(cname, (*C.CRoot_Option)(copt), ctitle, C.int32_t(compress), C.int32_t(netopt))
 	if f == nil {
 		return nil, fmt.Errorf("croot.OpenFile: could not open file [%s]", name)
 	}
@@ -42,16 +42,16 @@ func OpenFile(name, option, title string, compress, netopt int) (File, error) {
 }
 
 func (f *fileImpl) Cd(path string) bool {
-	c_path := C.CString(path)
-	defer C.free(unsafe.Pointer(c_path))
-	return c2bool(C.CRoot_File_cd(f.c, c_path))
+	cpath := C.CString(path)
+	defer C.free(unsafe.Pointer(cpath))
+	return c2bool(C.CRoot_File_cd(f.c, cpath))
 }
 
 func (f *fileImpl) Close(option string) {
-	c_option := C.CString(option)
-	defer C.free(unsafe.Pointer(c_option))
+	copt := C.CString(option)
+	defer C.free(unsafe.Pointer(copt))
 
-	C.CRoot_File_Close(f.c, (*C.CRoot_Option)(c_option))
+	C.CRoot_File_Close(f.c, (*C.CRoot_Option)(copt))
 }
 
 func (f *fileImpl) GetFd() int {
@@ -59,9 +59,9 @@ func (f *fileImpl) GetFd() int {
 }
 
 func (f *fileImpl) Get(namecycle string) Object {
-	c_name := C.CString(namecycle)
-	defer C.free(unsafe.Pointer(c_name))
-	o := C.CRoot_File_Get(f.c, c_name)
+	cname := C.CString(namecycle)
+	defer C.free(unsafe.Pointer(cname))
+	o := C.CRoot_File_Get(f.c, cname)
 	if o == nil {
 		return nil
 	}
@@ -77,7 +77,7 @@ func (f *fileImpl) IsOpen() bool {
 //func (f *fileImpl) WriteBuffer
 
 func (f *fileImpl) Write(name string, opt, bufsiz int) int {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-	return int(C.CRoot_File_Write(f.c, c_name, C.int32_t(opt), C.int32_t(bufsiz)))
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	return int(C.CRoot_File_Write(f.c, cname, C.int32_t(opt), C.int32_t(bufsiz)))
 }

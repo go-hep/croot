@@ -131,7 +131,7 @@ func gendict(t reflect.Type) {
 // helper function to create a Reflex::Class-type from a go.struct
 func gendict_struct(t reflect.Type) *ReflexType {
 	tname := t.Name()
-	full_name := to_cxx_name(t)
+	full_name := toCxxName(t)
 	//fmt.Printf("::gendict_struct[%s]...\n", full_name)
 
 	bldr := NewReflexClassBuilder(

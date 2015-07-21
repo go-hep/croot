@@ -29,16 +29,16 @@ func (r *randomImpl) Gaus(mean, sigma float64) float64 {
 }
 
 func (r *randomImpl) Rannorf() (a, b float32) {
-	c_a := (*C.float)(unsafe.Pointer(&a))
-	c_b := (*C.float)(unsafe.Pointer(&b))
-	C.CRoot_Random_Rannorf(r.c, c_a, c_b)
+	ca := (*C.float)(unsafe.Pointer(&a))
+	cb := (*C.float)(unsafe.Pointer(&b))
+	C.CRoot_Random_Rannorf(r.c, ca, cb)
 	return
 }
 
 func (r *randomImpl) Rannord() (a, b float64) {
-	c_a := (*C.double)(unsafe.Pointer(&a))
-	c_b := (*C.double)(unsafe.Pointer(&b))
-	C.CRoot_Random_Rannord(r.c, c_a, c_b)
+	ca := (*C.double)(unsafe.Pointer(&a))
+	cb := (*C.double)(unsafe.Pointer(&b))
+	C.CRoot_Random_Rannord(r.c, ca, cb)
 	return
 }
 

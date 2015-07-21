@@ -173,9 +173,9 @@ func new_reflex_type(t C.CRoot_Reflex_Type) *ReflexType {
 }
 
 func NewReflexType(name string, modifiers uint32) *ReflexType {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-	t := C.CRoot_Reflex_Type_new(c_name, C.uint(modifiers))
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	t := C.CRoot_Reflex_Type_new(cname, C.uint(modifiers))
 	return new_reflex_type(t)
 }
 
@@ -184,8 +184,8 @@ func (t *ReflexType) Delete() {
 }
 
 func (t *ReflexType) Id() uintptr {
-	c_id := C.CRoot_Reflex_Type_Id(t.t)
-	return uintptr(c_id)
+	cid := C.CRoot_Reflex_Type_Id(t.t)
+	return uintptr(cid)
 }
 
 func (t *ReflexType) ArrayLength() int {
@@ -193,24 +193,24 @@ func (t *ReflexType) ArrayLength() int {
 }
 
 func ReflexType_ByName(name string) *ReflexType {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-	c_t := C.CRoot_Reflex_Type_ByName(c_name)
-	t := &ReflexType{t: c_t}
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	ct := C.CRoot_Reflex_Type_ByName(cname)
+	t := &ReflexType{t: ct}
 	runtime.SetFinalizer(t, (*ReflexType).Delete)
 	return t
 }
 
 func (t *ReflexType) DataMemberAt(nth int, query Reflex_EMEMBERQUERY) *ReflexMember {
-	c_query := C.CRoot_Reflex_EMEMBERQUERY(query)
-	c_mbr := C.CRoot_Reflex_Type_DataMemberAt(t.t, C.size_t(nth), c_query)
-	mbr := new_reflex_member(c_mbr)
+	cquery := C.CRoot_Reflex_EMEMBERQUERY(query)
+	cmbr := C.CRoot_Reflex_Type_DataMemberAt(t.t, C.size_t(nth), cquery)
+	mbr := new_reflex_member(cmbr)
 	return mbr
 }
 
 func (t *ReflexType) DataMemberSize(query Reflex_EMEMBERQUERY) int {
-	c_query := C.CRoot_Reflex_EMEMBERQUERY(query)
-	sz := C.CRoot_Reflex_Type_DataMemberSize(t.t, c_query)
+	cquery := C.CRoot_Reflex_EMEMBERQUERY(query)
+	sz := C.CRoot_Reflex_Type_DataMemberSize(t.t, cquery)
 	return int(sz)
 }
 
@@ -279,21 +279,21 @@ func (t *ReflexType) IsVirtual() bool {
 }
 
 func (t *ReflexType) MemberAt(nth int, query Reflex_EMEMBERQUERY) *ReflexMember {
-	c_query := C.CRoot_Reflex_EMEMBERQUERY(query)
-	c_mbr := C.CRoot_Reflex_Type_MemberAt(t.t, C.size_t(nth), c_query)
-	mbr := new_reflex_member(c_mbr)
+	cquery := C.CRoot_Reflex_EMEMBERQUERY(query)
+	cmbr := C.CRoot_Reflex_Type_MemberAt(t.t, C.size_t(nth), cquery)
+	mbr := new_reflex_member(cmbr)
 	return mbr
 }
 
 func (t *ReflexType) MemberSize(query Reflex_EMEMBERQUERY) int {
-	c_query := C.CRoot_Reflex_EMEMBERQUERY(query)
-	sz := C.CRoot_Reflex_Type_MemberSize(t.t, c_query)
+	cquery := C.CRoot_Reflex_EMEMBERQUERY(query)
+	sz := C.CRoot_Reflex_Type_MemberSize(t.t, cquery)
 	return int(sz)
 }
 
 func (t *ReflexType) Name() string {
-	c_name := C.CRoot_Reflex_Type_Name(t.t)
-	name := C.GoString(c_name)
+	cname := C.CRoot_Reflex_Type_Name(t.t)
+	name := C.GoString(cname)
 	return name
 }
 
@@ -445,15 +445,15 @@ func (list *ReflexPropertyList) Count() int {
 }
 
 func (list *ReflexPropertyList) AsString(idx int) string {
-	c_str := C.CRoot_Reflex_PropertyList_PropertyAsString(list.c, C.size_t(idx))
-	defer C.free(unsafe.Pointer(c_str))
-	return C.GoString(c_str)
+	cstr := C.CRoot_Reflex_PropertyList_PropertyAsString(list.c, C.size_t(idx))
+	defer C.free(unsafe.Pointer(cstr))
+	return C.GoString(cstr)
 }
 
 func (list *ReflexPropertyList) Keys() string {
-	c_str := C.CRoot_Reflex_PropertyList_PropertyKeys(list.c)
-	defer C.free(unsafe.Pointer(c_str))
-	return C.GoString(c_str)
+	cstr := C.CRoot_Reflex_PropertyList_PropertyKeys(list.c)
+	defer C.free(unsafe.Pointer(cstr))
+	return C.GoString(cstr)
 }
 
 func NewReflexPointerBuilder(r *ReflexType) *ReflexType {
@@ -487,12 +487,12 @@ func NewReflexFunctionTypeBuilder3(r, t0, t1, t2 *ReflexType) *ReflexType {
 }
 
 func NewReflexClassBuilder(name string, size uintptr, modifiers uint32, typ Reflex_TYPE) *ReflexClassBuilder {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-	c_null := unsafe.Pointer(nil) // no typeinfo available from Go...
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	cnull := unsafe.Pointer(nil) // no typeinfo available from Go...
 
-	c_cb := C.CRoot_Reflex_ClassBuilder_new(c_name, c_null, C.size_t(size), C.uint(modifiers), C.CRoot_Reflex_TYPE(typ))
-	cb := &ReflexClassBuilder{c: c_cb}
+	ccb := C.CRoot_Reflex_ClassBuilder_new(cname, cnull, C.size_t(size), C.uint(modifiers), C.CRoot_Reflex_TYPE(typ))
+	cb := &ReflexClassBuilder{c: ccb}
 	runtime.SetFinalizer(cb, (*ReflexClassBuilder).Delete)
 	return cb
 }
@@ -505,29 +505,29 @@ func (c *ReflexClassBuilder) Delete() {
 }
 
 func (c *ReflexClassBuilder) AddDataMember(t *ReflexType, name string, offset uintptr, modifiers uint32) {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-	c_offset := C.size_t(offset)
-	c_modifiers := C.uint(modifiers)
-	C.CRoot_Reflex_ClassBuilder_AddDataMember(c.c, t.t, c_name, c_offset, c_modifiers)
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	coffset := C.size_t(offset)
+	cmods := C.uint(modifiers)
+	C.CRoot_Reflex_ClassBuilder_AddDataMember(c.c, t.t, cname, coffset, cmods)
 }
 
 func (c *ReflexClassBuilder) AddFunctionMember(t *ReflexType, name string, stubFct ReflexStubFunction, ctx unsafe.Pointer, modifiers uint32) {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-	c_null := unsafe.Pointer(nil)
-	c_ctx := ctx
-	c_params := (*C.char)(c_null)
-	c_stubFct := C.CRoot_Reflex_StubFunction(stubFct)
-	C.CRoot_Reflex_ClassBuilder_AddFunctionMember(c.c, t.t, c_name, c_stubFct, c_ctx, c_params, C.uint(modifiers))
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	cnull := unsafe.Pointer(nil)
+	cctx := ctx
+	cparams := (*C.char)(cnull)
+	cstubfct := C.CRoot_Reflex_StubFunction(stubFct)
+	C.CRoot_Reflex_ClassBuilder_AddFunctionMember(c.c, t.t, cname, cstubfct, cctx, cparams, C.uint(modifiers))
 }
 
 func (c *ReflexClassBuilder) AddProperty(key, value string) {
-	c_key := C.CString(key)
-	defer C.free(unsafe.Pointer(c_key))
-	c_value := C.CString(value)
-	defer C.free(unsafe.Pointer(c_value))
-	C.CRoot_Reflex_ClassBuilder_AddProperty(c.c, c_key, c_value)
+	ckey := C.CString(key)
+	defer C.free(unsafe.Pointer(ckey))
+	cval := C.CString(value)
+	defer C.free(unsafe.Pointer(cval))
+	C.CRoot_Reflex_ClassBuilder_AddProperty(c.c, ckey, cval)
 }
 
 func (c *ReflexClassBuilder) ToType() *ReflexType {
@@ -536,13 +536,13 @@ func (c *ReflexClassBuilder) ToType() *ReflexType {
 }
 
 func NewReflexFunctionBuilder(t *ReflexType, name string, stubFct ReflexStubFunction, modifiers uint32) *ReflexFunctionBuilder {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-	c_null := unsafe.Pointer(nil)
-	c_params := (*C.char)(c_null)
-	c_stubFct := C.CRoot_Reflex_StubFunction(stubFct)
-	c_f := C.CRoot_Reflex_FunctionBuilder_new(t.t, c_name, c_stubFct, c_null, c_params, C.uchar(modifiers))
-	f := &ReflexFunctionBuilder{f: c_f}
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	cnull := unsafe.Pointer(nil)
+	cparams := (*C.char)(cnull)
+	cstubfct := C.CRoot_Reflex_StubFunction(stubFct)
+	cfunc := C.CRoot_Reflex_FunctionBuilder_new(t.t, cname, cstubfct, cnull, cparams, C.uchar(modifiers))
+	f := &ReflexFunctionBuilder{f: cfunc}
 	runtime.SetFinalizer(f, (*ReflexFunctionBuilder).Delete)
 	return f
 }
