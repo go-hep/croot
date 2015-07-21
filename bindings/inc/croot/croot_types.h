@@ -8,12 +8,17 @@ extern "C" {
   typedef const char CRoot_Option; /* Option_t */
   typedef int CRoot_Bool;      /* Bool_t */
   typedef int32_t CRoot_Int;       /* Int_t */
+  typedef int64_t CRoot_Long;
   typedef int16_t CRoot_Version; /* Version_t */
+
+  typedef int CRoot_STLType; /* TDictionary::STLContainerType | ROOT::ESTLType */
+  typedef int CRoot_DataTypeKind; /* TDataType::EDataType */
 
   typedef void *CRoot_Branch; /* TBranch */
   typedef void *CRoot_BranchElement; /* TBranchElement */
   typedef void *CRoot_Chain; /* TChain */
   typedef void *CRoot_DataMember; /* TDataMember */
+  typedef void *CRoot_DataType; /* TDataType */
   typedef void *CRoot_Interpreter; /* TInterpreter */
   typedef void *CRoot_Leaf; /* TLeaf */
   typedef void *CRoot_LeafD; /* TLeafD */
