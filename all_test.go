@@ -157,7 +157,7 @@ func TestTreeBuiltinsRW(t *testing.T) {
 		if err != nil {
 			t.Fatalf(err.Error())
 		}
-		tree := f.GetTree("tree")
+		tree := f.Get("tree").(croot.Tree)
 		if tree.GetEntries() != evtmax {
 			t.Fatalf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
 		}
@@ -290,7 +290,7 @@ func TestTreeStructRW(t *testing.T) {
 			t.Errorf(err.Error())
 		}
 
-		tree := f.GetTree("tree")
+		tree := f.Get("tree").(croot.Tree)
 		if tree.GetEntries() != evtmax {
 			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
 		}
@@ -430,7 +430,7 @@ func TestTreeStructSlice(t *testing.T) {
 			t.Errorf(err.Error())
 		}
 
-		tree := f.GetTree("tree")
+		tree := f.Get("tree").(croot.Tree)
 		if tree.GetEntries() != evtmax {
 			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
 		}
@@ -582,7 +582,7 @@ func TestTreeStructArray(t *testing.T) {
 			t.Errorf(err.Error())
 		}
 
-		tree := f.GetTree("tree")
+		tree := f.Get("tree").(croot.Tree)
 		if tree.GetEntries() != evtmax {
 			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
 		}
@@ -724,7 +724,7 @@ func TestTreeStructString(t *testing.T) {
 			t.Errorf(err.Error())
 		}
 
-		tree := f.GetTree("tree")
+		tree := f.Get("tree").(croot.Tree)
 		if tree.GetEntries() != evtmax {
 			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
 		}

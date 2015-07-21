@@ -68,15 +68,6 @@ func (f *fileImpl) Get(namecycle string) Object {
 	return to_gocroot(&objectImpl{o})
 }
 
-func (f *fileImpl) GetTree(namecycle string) Tree {
-	o := f.Get(namecycle)
-	if o == nil {
-		return nil
-	}
-	c_t := (C.CRoot_Tree)(unsafe.Pointer(o.(c_object).cptr()))
-	return &treeImpl{c: c_t, branches: make(map[string]*gobranch)}
-}
-
 func (f *fileImpl) IsOpen() bool {
 	return c2bool(C.CRoot_File_IsOpen(f.c))
 }

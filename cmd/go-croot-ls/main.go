@@ -41,7 +41,7 @@ func main() {
 	defer f.Close("")
 
 	fmt.Printf(":: file: %s\n", f.GetName())
-	tree := f.GetTree(*tname)
+	tree := f.Get(*tname).(croot.Tree)
 	if tree == nil {
 		fmt.Printf("**error** no such tree [%s]\n", *tname)
 		os.Exit(1)
