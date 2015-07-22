@@ -49,6 +49,13 @@ type DataStrings struct {
 	Strings []string
 }
 
+type DataStringArray struct {
+	I      int64
+	Data   float64
+	Array  [2]string
+	NdArrS [2][2]string
+}
+
 func TestTreeBuiltinsRW(t *testing.T) {
 	const fname = "simple-event.root"
 	const evtmax = 10000
@@ -880,6 +887,159 @@ func TestTreeStructStrings(t *testing.T) {
 
 	if !reflect.DeepEqual(ref, chk) {
 		t.Fatalf("log files do not match\n==ref==\n%s\n==chk==\n%s\n", ref, chk)
+	}
+
+	err := os.Remove(fname)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+}
+
+func TestTreeStructStringArray(t *testing.T) {
+	const fname = "struct-string-array.root"
+	const evtmax = 10000
+	const splitlevel = 32
+	const bufsiz = 32000
+	const compress = 1
+	const netopt = 0
+
+	// write
+	ref := make([]string, 0, 50)
+	{
+		add := func(str string) {
+			ref = append(ref, str)
+		}
+
+		f, err := croot.OpenFile(fname, "recreate", "croot event file", compress, netopt)
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+
+		// create a tree
+		tree := croot.NewTree("tree", "tree", splitlevel)
+
+		e := DataStringArray{}
+
+		_, err = tree.Branch("evt", &e, bufsiz, 0)
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+
+		// initialize our source of random numbers...
+		src := rand.New(rand.NewSource(1))
+
+		// fill some events with random numbers
+		for iev := int64(0); iev != evtmax; iev++ {
+			if iev%1000 == 0 {
+				add(fmt.Sprintf(":: processing event %d...\n", iev))
+			}
+
+			e.I = iev
+			e.Data = src.NormFloat64()
+
+			pstr := fmt.Sprintf("%+e", +e.Data)
+			mstr := fmt.Sprintf("%+e", -e.Data)
+
+			e.Array[0] = pstr
+			e.Array[1] = mstr
+
+			e.NdArrS[0][0] = pstr
+			e.NdArrS[0][1] = mstr
+			e.NdArrS[1][0] = mstr
+			e.NdArrS[1][1] = pstr
+
+			if len(e.Array) != 2 {
+				t.Errorf("invalid e.Array size: %v (expected 2)", len(e.Array))
+			}
+
+			if iev%1000 == 0 {
+				add(fmt.Sprintf("evt.i=     %8d\n", e.I))
+				add(fmt.Sprintf("evt.d=     %v\n", e.Data))
+				add(fmt.Sprintf("evt.array= %s %s\n", e.Array[0], e.Array[1]))
+				add(fmt.Sprintf("evt.ndarrs=%s %s %s %s\n", e.NdArrS[0][0], e.NdArrS[0][1], e.NdArrS[1][0], e.NdArrS[1][1]))
+			}
+			_, err = tree.Fill()
+			if err != nil {
+				t.Errorf(err.Error())
+			}
+		}
+		f.Write("", 0, 0)
+		f.Close("")
+	}
+
+	// read back
+	chk := make([]string, 0, 50)
+	{
+		add := func(str string) {
+			chk = append(chk, str)
+		}
+
+		f, err := croot.OpenFile(fname, "read", "croot event file", compress, netopt)
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+
+		tree := f.Get("tree").(croot.Tree)
+		if tree.GetEntries() != evtmax {
+			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
+		}
+
+		// initialize our source of random numbers...
+		src := rand.New(rand.NewSource(1))
+
+		var e DataStringArray
+		tree.SetBranchAddress("evt", &e)
+
+		// read events
+		for iev := int64(0); iev != evtmax; iev++ {
+			if iev%1000 == 0 {
+				add(fmt.Sprintf(":: processing event %d...\n", iev))
+			}
+			if tree.GetEntry(iev, 1) <= 0 {
+				panic("error")
+			}
+			if iev%1000 == 0 {
+				add(fmt.Sprintf("evt.i=     %8d\n", e.I))
+				add(fmt.Sprintf("evt.d=     %v\n", e.Data))
+				add(fmt.Sprintf("evt.array= %s %s\n", e.Array[0], e.Array[1]))
+				add(fmt.Sprintf("evt.ndarrs=%s %s %s %s\n", e.NdArrS[0][0], e.NdArrS[0][1], e.NdArrS[1][0], e.NdArrS[1][1]))
+			}
+
+			if len(e.Array) != 2 {
+				t.Errorf("invalid e.Array size: %v (expected 2)", len(e.Array))
+			}
+			pstr := fmt.Sprintf("%+e", +e.Data)
+			mstr := fmt.Sprintf("%+e", -e.Data)
+			if e.Array[0] != pstr {
+				t.Errorf("invalid e.Array[0] value: %v (expected %v)",
+					e.Array[0], pstr)
+			}
+			if e.Array[1] != mstr {
+				t.Errorf("invalid e.Array[1] value: %v (expected %v)",
+					e.Array[1], mstr)
+			}
+
+			data := src.NormFloat64()
+			pstr = fmt.Sprintf("%+e", +data)
+			mstr = fmt.Sprintf("%+e", -data)
+			exp := DataStringArray{
+				I:     iev,
+				Data:  data,
+				Array: [2]string{pstr, mstr},
+				NdArrS: [2][2]string{
+					{pstr, mstr},
+					{mstr, pstr},
+				},
+			}
+			if !reflect.DeepEqual(e, exp) {
+				t.Errorf("invalid data value.\nexp=%#v\ngot=%#v\n", exp, e)
+			}
+		}
+		f.Close("")
+	}
+
+	if !reflect.DeepEqual(ref, chk) {
+		t.Errorf("log files do not match")
 	}
 
 	err := os.Remove(fname)
