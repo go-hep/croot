@@ -12,7 +12,7 @@ $ git clone \
   git://github.com/go-hep/croot \
   $GOPATH/src/github.com/go-hep/croot
 $ cd $GOPATH/src/github.com/go-hep/croot
-$ make install
+$ make clean install
 $ make test
 ok  	github.com/go-hep/croot	2.862s
 ```    
@@ -63,6 +63,16 @@ type Event struct {
 var evtmax *int = flag.Int("evtmax", 10000, "number of events to generate")
 var fname *string = flag.String("fname", "event.root", "file to create")
 
+func main() {
+	flag.Parse()
+	f, err := croot.OpenFile(*fname, "recreate", "my event file", 1, 0)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close("")
+	tree0(f)
+}
+
 func tree0(f croot.File) {
 	// create a tree
 	tree := croot.NewTree("tree", "tree", 32)
@@ -102,16 +112,6 @@ func tree0(f croot.File) {
 	}
 	f.Write("", 0, 0)
 }
-
-func main() {
-	flag.Parse()
-	f, err := croot.OpenFile(*fname, "recreate", "my event file", 1, 0)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close("")
-	tree0(f)
-}
 // EOF
 ```
 
@@ -138,6 +138,21 @@ type Event struct {
 
 var evtmax *int64 = flag.Int64("evtmax", 10000, "number of events to read")
 var fname *string = flag.String("fname", "event.root", "file to read back")
+
+func main() {
+	flag.Parse()
+	
+	croot.RegisterType(&Event{})
+
+	fmt.Printf(":: opening [%s]...\n", *fname)
+	f, err := croot.OpenFile(*fname, "read", "my event file", 1, 0)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close("")
+	tree0(f)
+
+}
 
 func tree0(f croot.File) {
 	t := f.Get("tree").(croot.Tree)
@@ -167,19 +182,5 @@ func tree0(f croot.File) {
 	}
 }
 
-func main() {
-	flag.Parse()
-	
-	croot.RegisterType(&Event{})
-
-	fmt.Printf(":: opening [%s]...\n", *fname)
-	f, err := croot.OpenFile(*fname, "read", "my event file", 1, 0)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close("")
-	tree0(f)
-
-}
 // EOF
 ```
