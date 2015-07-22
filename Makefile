@@ -85,6 +85,7 @@ cxx_croot_dicts := \
 cxx_croot_objects := $(subst .cxx,.o,$(cxx_croot_sources))
 cxx_croot_dict_objects := $(subst .cxx,.o,$(cxx_croot_dicts))
 cxx_croot_dict_pch := bindings/src/goedm_dict_rdict.pcm
+cxx_croot_dict_hdr := bindings/src/goedm_dict.h
 
 .PHONY: install dirs clean
 
@@ -126,7 +127,8 @@ test: install
 clean:
 	@rm -f object_impl.go
 	@rm -f $(cxx_croot_objects)
-	@rm -f $(cxx_croot_dicts) $(cxx_croot_dict_objects) $(cxx_croot_dict_pch)
+	@rm -f $(cxx_croot_dicts) $(cxx_croot_dict_objects) \
+		$(cxx_croot_dict_pch) $(cxx_croot_dict_hdr)
 	@rm -rf $(INSTALL_LIBDIR)
 	@rm -rf $(INSTALL_DIR)/github.com/go-hep/croot
 	@rm -rf $(INSTALL_DIR)/github.com/go-hep/croot.a
