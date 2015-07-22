@@ -116,6 +116,32 @@ func TestClass(t *testing.T) {
 				},
 			},
 		},
+		{
+			Name: "golang::goslice<golang::gostring>",
+			Members: []MemberDescr{
+				{
+					Name:         "Len",
+					Offset:       0,
+					TypeName:     "int",
+					FullTypeName: "int",
+					ArrayDim:     0,
+				},
+				{
+					Name:         "Cap",
+					Offset:       4,
+					TypeName:     "int",
+					FullTypeName: "int",
+					ArrayDim:     0,
+				},
+				{
+					Name:         "Data",
+					Offset:       8,
+					TypeName:     "golang::gostring",
+					FullTypeName: "golang::gostring*",
+					ArrayDim:     0,
+				},
+			},
+		},
 	} {
 		cls := croot.GetClass(table.Name)
 		if cls == nil {
