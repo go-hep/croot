@@ -9,7 +9,7 @@ before_install:
    - sudo apt-get install python-dev root-system -qq
    - export PATH=$HOME/gopath/bin:$PATH
 
-install:
+script:
     - make clean install
     - make test
 
