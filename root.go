@@ -10,6 +10,7 @@ import (
 	"unsafe"
 )
 
+// ROOT is the entry point to the ROOT system.
 type ROOT struct {
 	c C.CRoot_ROOT
 }
@@ -25,6 +26,12 @@ func (r *ROOT) GetFile(name string) File {
 		return nil
 	}
 	return &fileImpl{c}
+}
+
+func (r *ROOT) GetVersion() string {
+	version := C.CRoot_ROOT_GetVersion(r.c)
+	// we don't own 'version'. no need for C.free
+	return C.GoString(version)
 }
 
 func init() {

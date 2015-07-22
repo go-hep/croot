@@ -94,6 +94,12 @@ CRoot_ObjArray_GetName(CRoot_ObjArray self)
 /* TROOT */
 CRoot_ROOT CRoot_gROOT;
 
+const char*
+CRoot_ROOT_GetVersion(CRoot_ROOT self)
+{
+	return ((TROOT*)self)->GetVersion();
+}
+
 CRoot_File
 CRoot_ROOT_GetFile(CRoot_ROOT self,
                    const char *name)

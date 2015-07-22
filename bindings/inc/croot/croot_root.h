@@ -6,6 +6,11 @@ extern "C" {
 #endif
 
 /* TROOT */
+
+CROOT_API
+const char*
+CRoot_ROOT_GetVersion(CRoot_ROOT self);
+
 CROOT_API
 CRoot_File
 CRoot_ROOT_GetFile(CRoot_ROOT self,
