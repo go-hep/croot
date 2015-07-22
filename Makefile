@@ -8,11 +8,11 @@ ROOT_VERSION := $(shell $(ROOT_CONFIG) --version | cut -f1 -d.)
 ifeq ($(ROOT_VERSION),6)
 ROOT_LDFLAGS := $(shell $(ROOT_CONFIG) --libs --ldflags)
 gocroot_tag := "root6"
-gendict_file := gen_goedmdict_root6.go
+gendict_file := gen-goedm-dict-root6.go
 else
 gocroot_tag := "root5"
 ROOT_LDFLAGS := $(shell $(ROOT_CONFIG) --libs --ldflags) -lReflex -lCintex
-gendict_file := gen_goedmdict_root5.go
+gendict_file := gen-goedm-dict-root5.go
 endif
 
 GOOS := $(shell go env GOOS)
