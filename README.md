@@ -29,13 +29,13 @@ ok  	github.com/go-hep/croot	2.862s
 - read/write of arrays: **WORKS**
 - read/write of slices: **WORKS**
 - read/write of structs: **WORKS**
-- read/write of strings: **DOES NOT WORK**
+- read/write of strings: **WORKS**
 
 ## Example
 
 `croot` can now (correctly) write and read `go` structs which have
 an equivalent `C` representation.
-**Except** for `char*` and structs embedding pointers.
+**Except** for structs embedding pointers.
 
 A typical write program would look like:
 

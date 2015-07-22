@@ -660,8 +660,6 @@ func TestTreeStructString(t *testing.T) {
 	const compress = 1
 	const netopt = 0
 
-	t.Skip("string not yet")
-
 	// write
 	ref := make([]string, 0, 50)
 	{
@@ -696,7 +694,7 @@ func TestTreeStructString(t *testing.T) {
 			e.I = iev
 			e.Data = src.NormFloat64()
 
-			e.String = fmt.Sprintf("%v", e.Data)
+			e.String = fmt.Sprintf("%+e", e.Data)
 
 			if iev%1000 == 0 {
 				add(fmt.Sprintf("evt.i=     %8d\n", e.I))
@@ -743,7 +741,7 @@ func TestTreeStructString(t *testing.T) {
 			}
 			if iev%1000 == 0 {
 				add(fmt.Sprintf("evt.i=     %8d\n", e.I))
-				add(fmt.Sprintf("evt.d=     %vf\n", e.Data))
+				add(fmt.Sprintf("evt.d=     %v\n", e.Data))
 				add(fmt.Sprintf("evt.s=     %s\n", e.String))
 			}
 

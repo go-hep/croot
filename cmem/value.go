@@ -308,9 +308,9 @@ func (v Value) GoValue() reflect.Value {
 
 	case reflect.String:
 		cstr := (*cmem_string)(v.val)
-		if cstr.Data != nil && cstr.Len != 0 {
+		if cstr.Data != nil && cstr.Len > 0 {
 			s := C.GoString((*C.char)(cstr.Data))
-			rv.Set(reflect.ValueOf(s))
+			rv.Set(reflect.ValueOf(s[:cstr.Len]))
 		} else {
 			rv.Set(reflect.ValueOf(""))
 		}
