@@ -1,6 +1,8 @@
 croot
 =====
 
+[![GoDoc](https://godoc.org/github.com/go-hep/croot?status.svg)](https://godoc.org/github.com/go-hep/croot)
+
 Go bindings to the C-API of ROOT (CRoot).
 
 ## Installation
