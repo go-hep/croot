@@ -1,0 +1,18 @@
+language: go
+
+go:
+  - 1.4.2
+  - tip
+
+before_install:
+   - sudo apt-get update -qq
+   - sudo apt-get install python-dev root-system -qq
+   - export PATH=$HOME/gopath/bin:$PATH
+
+notifications:
+  email:
+    recipients:
+      - binet@cern.ch
+    on_success: change
+    on_failure: always
+
