@@ -4,7 +4,8 @@ croot
 [![GoDoc](https://godoc.org/github.com/go-hep/croot?status.svg)](https://godoc.org/github.com/go-hep/croot)
 
 Go bindings to the C-API of ROOT (CRoot).
-`croot` can now compile against either `ROOT-5` or `ROOT-6`.
+
+`croot` supports now both `ROOT-5` and `ROOT-6`.
 
 ## Installation
 
