@@ -1,7 +1,9 @@
 #ifndef GOEDM_GOEDMDICT_H
 #define GOEDM_GOEDMDICT_H 1
 
-#include <stdint.h> // for (u)intXXX_t
+#ifndef __APPLE__
+# include <stdint.h> // for (u)intXXX_t
+#endif
 
 namespace golang {
 
