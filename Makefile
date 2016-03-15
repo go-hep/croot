@@ -3,7 +3,7 @@
 # license that can be found in the LICENSE file.
 
 ROOT_CONFIG := root-config
-ROOT_CFLAGS := $(shell $(ROOT_CONFIG) --cflags)
+ROOT_CFLAGS := $(shell $(ROOT_CONFIG) --cflags) -D_GLIBCXX_USE_CXX11_ABI=0
 ROOT_VERSION := $(shell $(ROOT_CONFIG) --version | cut -f1 -d.)
 ifeq ($(ROOT_VERSION),6)
 ROOT_LDFLAGS := $(shell $(ROOT_CONFIG) --libs --ldflags)
