@@ -9,12 +9,13 @@ Go bindings to the C-API of ROOT (CRoot).
 
 ## Installation
 
-Unfortunately, ``go-hep/croot`` isn't completely ``go-get`` able:
+Unfortunately, ``go-hep/croot`` isn't completely ``go-get`` able.
+You **NEED** to run `go generate` (or `make gen`) once the code has been retrieved from github:
 
 ```sh
 $ go get -d github.com/go-hep/croot
 $ cd $GOPATH/src/github.com/go-hep/croot
-$ make clean install
+$ make clean gen install
 $ make test
 ok  	github.com/go-hep/croot	2.862s
 ```    
