@@ -21,7 +21,7 @@ type randomImpl struct {
 	c C.CRoot_Random
 }
 
-var GRandom Random = nil
+var GRandom Random = &randomImpl{C.CRoot_gRandom}
 
 func (r *randomImpl) Gaus(mean, sigma float64) float64 {
 	val := C.CRoot_Random_Gaus(r.c, C.double(mean), C.double(sigma))

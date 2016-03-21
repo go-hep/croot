@@ -7,10 +7,8 @@ ROOT_CFLAGS := $(shell $(ROOT_CONFIG) --cflags) -D_GLIBCXX_USE_CXX11_ABI=0
 ROOT_VERSION := $(shell $(ROOT_CONFIG) --version | cut -f1 -d.)
 ifeq ($(ROOT_VERSION),6)
 ROOT_LDFLAGS := $(shell $(ROOT_CONFIG) --libs --ldflags)
-gocroot_tag := "root6"
 gendict_file := gen-goedm-dict-root6.go
 else
-gocroot_tag := "root5"
 ROOT_LDFLAGS := $(shell $(ROOT_CONFIG) --libs --ldflags) -lReflex -lCintex
 gendict_file := gen-goedm-dict-root5.go
 endif
@@ -48,27 +46,27 @@ GOCMD := go
 gen_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
  CGO_CFLAGS=$(CGO_CFLAGS) \
- $(GOCMD) generate $(GO_VERBOSE) -tags=$(gocroot_tag) -compiler=$(GO_COMPILER)
+ $(GOCMD) generate $(GO_VERBOSE) -compiler=$(GO_COMPILER)
 
 build_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
  CGO_CFLAGS=$(CGO_CFLAGS) \
- $(GOCMD) build $(GO_VERBOSE) -tags=$(gocroot_tag) -compiler=$(GO_COMPILER)
+ $(GOCMD) build $(GO_VERBOSE) -compiler=$(GO_COMPILER)
 
 install_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
  CGO_CFLAGS=$(CGO_CFLAGS) \
- $(GOCMD) install $(GO_VERBOSE) -tags=$(gocroot_tag) -compiler=$(GO_COMPILER)
+ $(GOCMD) install $(GO_VERBOSE) -compiler=$(GO_COMPILER)
 
 test_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
  CGO_CFLAGS=$(CGO_CFLAGS) \
- $(GOCMD) test $(GO_VERBOSE) -tags=$(gocroot_tag) -compiler=$(GO_COMPILER)
+ $(GOCMD) test $(GO_VERBOSE) -compiler=$(GO_COMPILER)
 
 clean_cmd = \
  CGO_LDFLAGS=$(CGO_LDFLAGS) \
  CGO_CFLAGS=$(CGO_CFLAGS) \
- $(GOCMD) clean $(GO_VERBOSE) -tags=$(gocroot_tag) -compiler=$(GO_COMPILER)
+ $(GOCMD) clean $(GO_VERBOSE) -compiler=$(GO_COMPILER)
 
 cxx_croot_sources := \
  bindings/src/croot.cxx \
