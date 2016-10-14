@@ -8,53 +8,8 @@ import (
 	"testing"
 
 	"github.com/go-hep/croot"
+	"github.com/go-hep/croot/testdata/edm"
 )
-
-type Det struct {
-	E float64
-	T float64
-}
-
-type Event struct {
-	I      int64
-	A      Det
-	B      Det
-	ArrayI [2]int64
-	ArrayD [2]float64
-}
-
-type DataSlice struct {
-	I     int64
-	Data  float64
-	Slice []float64
-}
-
-type DataArray struct {
-	I      int64
-	Data   float64
-	Array  [2]float64
-	NdArrI [2][2]int64
-	NdArrF [2][2]float64
-}
-
-type DataString struct {
-	I      int64
-	Data   float64
-	String string
-}
-
-type DataStrings struct {
-	I       int64
-	Data    float64
-	Strings []string
-}
-
-type DataStringArray struct {
-	I      int64
-	Data   float64
-	Array  [2]string
-	NdArrS [2][2]string
-}
 
 func TestTreeBuiltinsRW(t *testing.T) {
 	const fname = "simple-event.root"
@@ -79,7 +34,7 @@ func TestTreeBuiltinsRW(t *testing.T) {
 		// create a tree
 		tree := croot.NewTree("tree", "tree", splitlevel)
 
-		e := Event{}
+		e := edm.Event{}
 
 		// create a branch with energy
 		_, err = tree.Branch2("evt_i", &e.I, "evt_i/L", bufsiz)
@@ -175,7 +130,7 @@ func TestTreeBuiltinsRW(t *testing.T) {
 			t.Fatalf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
 		}
 
-		e := Event{}
+		e := edm.Event{}
 
 		tree.SetBranchAddress("evt_i", &e.I)
 		tree.SetBranchAddress("evt_a_e", &e.A.E)
@@ -243,7 +198,7 @@ func TestTreeStructRW(t *testing.T) {
 		// create a tree
 		tree := croot.NewTree("tree", "tree", splitlevel)
 
-		e := Event{}
+		e := edm.Event{}
 
 		_, err = tree.Branch("evt", &e, bufsiz, 0)
 		if err != nil {
@@ -259,13 +214,13 @@ func TestTreeStructRW(t *testing.T) {
 				add(fmt.Sprintf(":: processing event %d...\n", iev))
 			}
 
-			e = Event{
+			e = edm.Event{
 				I: iev,
-				A: Det{
+				A: edm.Det{
 					E: src.NormFloat64(),
 					T: src.NormFloat64(),
 				},
-				B: Det{
+				B: edm.Det{
 					E: src.NormFloat64(),
 					T: src.NormFloat64(),
 				},
@@ -311,7 +266,7 @@ func TestTreeStructRW(t *testing.T) {
 		// initialize our source of random numbers...
 		src := rand.New(rand.NewSource(1))
 
-		var e Event
+		var e edm.Event
 		tree.SetBranchAddress("evt", &e)
 
 		// read events
@@ -336,13 +291,13 @@ func TestTreeStructRW(t *testing.T) {
 				t.Fatalf("invalid event number. expected %v, got %v", iev, e.I)
 			}
 
-			exp := Event{
+			exp := edm.Event{
 				I: iev,
-				A: Det{
+				A: edm.Det{
 					E: src.NormFloat64(),
 					T: src.NormFloat64(),
 				},
-				B: Det{
+				B: edm.Det{
 					E: src.NormFloat64(),
 					T: src.NormFloat64(),
 				},
@@ -390,7 +345,7 @@ func TestTreeStructSlice(t *testing.T) {
 		// create a tree
 		tree := croot.NewTree("tree", "tree", splitlevel)
 
-		e := DataSlice{}
+		e := edm.DataSlice{}
 		e.Slice = make([]float64, 0)
 
 		_, err = tree.Branch("evt", &e, bufsiz, 0)
@@ -451,7 +406,7 @@ func TestTreeStructSlice(t *testing.T) {
 		// initialize our source of random numbers...
 		src := rand.New(rand.NewSource(1))
 
-		var e DataSlice
+		var e edm.DataSlice
 		e.Slice = make([]float64, 0, 2)
 		tree.SetBranchAddress("evt", &e)
 
@@ -485,7 +440,7 @@ func TestTreeStructSlice(t *testing.T) {
 			}
 
 			data := src.NormFloat64()
-			exp := DataSlice{
+			exp := edm.DataSlice{
 				I:     iev,
 				Data:  data,
 				Slice: []float64{data, -data},
@@ -530,7 +485,7 @@ func TestTreeStructArray(t *testing.T) {
 		// create a tree
 		tree := croot.NewTree("tree", "tree", splitlevel)
 
-		e := DataArray{}
+		e := edm.DataArray{}
 
 		_, err = tree.Branch("evt", &e, bufsiz, 0)
 		if err != nil {
@@ -603,7 +558,7 @@ func TestTreeStructArray(t *testing.T) {
 		// initialize our source of random numbers...
 		src := rand.New(rand.NewSource(1))
 
-		var e DataArray
+		var e edm.DataArray
 		tree.SetBranchAddress("evt", &e)
 
 		// read events
@@ -635,7 +590,7 @@ func TestTreeStructArray(t *testing.T) {
 			}
 
 			data := src.NormFloat64()
-			exp := DataArray{
+			exp := edm.DataArray{
 				I:     iev,
 				Data:  data,
 				Array: [2]float64{data, -data},
@@ -688,7 +643,7 @@ func TestTreeStructString(t *testing.T) {
 		// create a tree
 		tree := croot.NewTree("tree", "tree", splitlevel)
 
-		e := DataString{}
+		e := edm.DataString{}
 
 		_, err = tree.Branch("evt", &e, bufsiz, 0)
 		if err != nil {
@@ -740,12 +695,11 @@ func TestTreeStructString(t *testing.T) {
 			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
 		}
 
-		var e DataString
+		var e edm.DataString
 		tree.SetBranchAddress("evt", &e)
 
 		// read events
 		for iev := int64(0); iev != evtmax; iev++ {
-			fmt.Printf(":: processing event %d...\n", iev)
 			if iev%1000 == 0 {
 				add(fmt.Sprintf(":: processing event %d...\n", iev))
 			}
@@ -800,7 +754,7 @@ func TestTreeStructStrings(t *testing.T) {
 		// create a tree
 		tree := croot.NewTree("tree", "tree", splitlevel)
 
-		e := DataStrings{}
+		e := edm.DataStrings{}
 		e.Strings = make([]string, 0, 2)
 
 		_, err = tree.Branch("evt", &e, bufsiz, 0)
@@ -858,7 +812,7 @@ func TestTreeStructStrings(t *testing.T) {
 			t.Errorf("expected [%v] entries, got %v\n", evtmax, tree.GetEntries())
 		}
 
-		var e DataStrings
+		var e edm.DataStrings
 		tree.SetBranchAddress("evt", &e)
 
 		// read events
@@ -918,7 +872,7 @@ func TestTreeStructStringArray(t *testing.T) {
 		// create a tree
 		tree := croot.NewTree("tree", "tree", splitlevel)
 
-		e := DataStringArray{}
+		e := edm.DataStringArray{}
 
 		_, err = tree.Branch("evt", &e, bufsiz, 0)
 		if err != nil {
@@ -987,7 +941,7 @@ func TestTreeStructStringArray(t *testing.T) {
 		// initialize our source of random numbers...
 		src := rand.New(rand.NewSource(1))
 
-		var e DataStringArray
+		var e edm.DataStringArray
 		tree.SetBranchAddress("evt", &e)
 
 		// read events
@@ -1022,7 +976,7 @@ func TestTreeStructStringArray(t *testing.T) {
 			data := src.NormFloat64()
 			pstr = fmt.Sprintf("%+e", +data)
 			mstr = fmt.Sprintf("%+e", -data)
-			exp := DataStringArray{
+			exp := edm.DataStringArray{
 				I:     iev,
 				Data:  data,
 				Array: [2]string{pstr, mstr},
