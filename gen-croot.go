@@ -36,7 +36,6 @@ func main() {
 		log.Fatalf("error getting ROOT cflags: %v\n", err)
 	}
 	cflags = trim(cflags)
-	cflags = append(cflags, []byte(" -D_GLIBCXX_USE_CXX11_ABI=0")...)
 
 	ldflags, err := exec.Command("root-config", "--ldflags", "--libs").Output()
 	if err != nil {
