@@ -3,6 +3,9 @@
 #pragma link C++ class golang::goslice<double>;
 #pragma link C++ class golang::goslice<float>;
 #pragma link C++ class golang::goslice<int>;
+#pragma link C++ class golang::goslice<unsigned int>;
+#pragma link C++ class golang::goslice<long>;
+#pragma link C++ class golang::goslice<unsigned long>;
 #pragma link C++ class golang::goslice<golang::gostring>;
 #endif
 
@@ -16,5 +19,8 @@
 #pragma link C++ class golang::goslice< double>+;
 #pragma link C++ class golang::goslice< float>+;
 #pragma link C++ class golang::goslice< int>+;
+#pragma link C++ class golang::goslice< unsigned int>+;
+#pragma link C++ class golang::goslice< long>+;
+#pragma link C++ class golang::goslice< unsigned long>+;
 #pragma link C++ class golang::goslice< golang::gostring>+;
 #endif

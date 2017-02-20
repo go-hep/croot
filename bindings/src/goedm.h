@@ -24,7 +24,10 @@ namespace {
 	golang::goslice< double> i_1;
 	golang::goslice< float> i_2;
 	golang::goslice< int> i_3;
-	golang::goslice< golang::gostring> i_4;
+	golang::goslice< unsigned int> i_4;
+	golang::goslice< long> i_5;
+	golang::goslice< unsigned long> i_6;
+	golang::goslice< golang::gostring> i_7;
 }
 
 #endif
