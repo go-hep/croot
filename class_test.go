@@ -192,7 +192,7 @@ func TestClass(t *testing.T) {
 			if m.ArrayDim != ndims {
 				t.Fatalf(
 					"%s.%s: ndims error. want=%d. got=%d\n",
-					table.Name, m.Name, m.TypeName,
+					table.Name, m.Name, m.ArrayDim,
 					ndims,
 				)
 			}
