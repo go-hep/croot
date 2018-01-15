@@ -141,7 +141,7 @@ import "C"
 		log.Fatalf("error creating libcxx-croot install directory: %v\n", err)
 	}
 
-	crootDir := filepath.Join(gopath, "src", "github.com", "go-hep", "croot")
+	crootDir := filepath.Join(gopath, "src", "go-hep.org", "x", "cgo", "croot")
 	// build C++ -> C ROOT shim library
 	// 1. generate the dict code
 	cmd := exec.Command("go", "generate", genDictFile)

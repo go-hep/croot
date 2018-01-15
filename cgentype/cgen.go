@@ -1,12 +1,12 @@
 // Package cgentype generates equivalent C++ types from Go types.
-package cgentype
+package cgentype // import "go-hep.org/x/cgo/croot/cgentype"
 
 import (
 	"fmt"
 	"reflect"
 	"strings"
 
-	"github.com/go-hep/croot/cmem"
+	"go-hep.org/x/cgo/croot/cmem"
 )
 
 func Generate(t reflect.Type) string {

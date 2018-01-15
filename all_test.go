@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/go-hep/croot"
-	"github.com/go-hep/croot/testdata/edm"
+	"go-hep.org/x/cgo/croot"
+	"go-hep.org/x/cgo/croot/testdata/edm"
 )
 
 func TestTreeBuiltinsRW(t *testing.T) {

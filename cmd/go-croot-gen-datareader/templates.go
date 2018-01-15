@@ -7,7 +7,7 @@ package {{.Package}}
 import (
   "fmt"
 
-  "github.com/go-hep/croot"
+  "go-hep.org/x/cgo/croot"
 )
 
 {{range .Defs}}

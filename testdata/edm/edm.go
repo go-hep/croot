@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package edm exposes a few simple types for testing ROOT I/O.
-package edm
+package edm // import "go-hep.org/x/cgo/croot/testdata/edm"
 
 type Det struct {
 	E float64

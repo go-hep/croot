@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/go-hep/croot"
+	"go-hep.org/x/cgo/croot"
 )
 
 var (

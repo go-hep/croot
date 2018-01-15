@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/go-hep/croot"
+	"go-hep.org/x/cgo/croot"
 )
 
 var (

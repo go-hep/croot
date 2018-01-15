@@ -3,7 +3,7 @@ package croot_test
 import (
 	"testing"
 
-	"github.com/go-hep/croot"
+	"go-hep.org/x/cgo/croot"
 )
 
 func TestClass(t *testing.T) {

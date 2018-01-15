@@ -18,7 +18,7 @@
 // where "dict.json" is:
 //  [
 //    {
-//      "import": "github.com/go-hep/croot/testdata/edm",
+//      "import": "go-hep.org/x/cgo/croot/testdata/edm",
 //      "types": ["Event", "Det"]
 //    }
 //  ]
@@ -138,7 +138,7 @@ const srcTmpl = `// Copyright 2016 The go-hep Authors.  All rights reserved.
 package main
 
 import (
-	"github.com/go-hep/croot"
+	"go-hep.org/x/cgo/croot"
 
 	{{- range .Packages}}
 	{{.Alias}} "{{.Import}}"

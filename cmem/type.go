@@ -1,4 +1,4 @@
-package cmem
+package cmem // import "go-hep.org/x/cgo/croot/cmem"
 
 import (
 	"fmt"

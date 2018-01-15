@@ -26,7 +26,7 @@ import (
 	"reflect"
 	"unsafe"
 
-	"github.com/go-hep/croot/cmem"
+	"go-hep.org/x/cgo/croot/cmem"
 )
 
 // Tree

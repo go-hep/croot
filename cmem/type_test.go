@@ -8,7 +8,7 @@ import (
 	"testing"
 	"unsafe"
 
-	"github.com/go-hep/croot/cmem"
+	"go-hep.org/x/cgo/croot/cmem"
 )
 
 func eq(t *testing.T, ref, chk interface{}) {

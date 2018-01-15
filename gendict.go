@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"unsafe"
 
-	"github.com/go-hep/croot/cgentype"
+	"go-hep.org/x/cgo/croot/cgentype"
 )
 
 // RegisterType declares the (equivalent) C-layout of value v to ROOT so

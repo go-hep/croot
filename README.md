@@ -1,7 +1,7 @@
 croot
 =====
 
-[![GoDoc](https://godoc.org/github.com/go-hep/croot?status.svg)](https://godoc.org/github.com/go-hep/croot)
+[![GoDoc](https://godoc.org/go-hep.org/x/cgo/croot?status.svg)](https://godoc.org/go-hep.org/x/cgo/croot)
 
 Go bindings to the C-API of ROOT (CRoot).
 
@@ -13,17 +13,17 @@ Unfortunately, ``go-hep/croot`` isn't completely ``go-get`` able.
 You **NEED** to run `go generate` (or `make gen`) once the code has been retrieved from github:
 
 ```sh
-$ go get -d github.com/go-hep/croot
-$ cd $GOPATH/src/github.com/go-hep/croot
+$ go get -d go-hep.org/x/cgo/croot
+$ cd $GOPATH/src/go-hep.org/x/cgo/croot
 $ make clean gen install
 $ make test
-ok  	github.com/go-hep/croot	2.862s
+ok  	go-hep.org/x/cgo/croot	2.862s
 ```    
 
 
 ## Documentation
 
- http://godoc.org/github.com/go-hep/croot
+ http://godoc.org/go-hep.org/x/cgo/croot
 
 
 ## ``TTree`` Limitations/Status
@@ -50,7 +50,7 @@ import (
 	"flag"
 	"math/rand"
 
-	"github.com/go-hep/croot"
+	"go-hep.org/x/cgo/croot"
 )
 
 type Det struct {
@@ -126,7 +126,7 @@ import (
 	"fmt"
 	"flag"
 
-	"github.com/go-hep/croot"
+	"go-hep.org/x/cgo/croot"
 )
 
 type Det struct {

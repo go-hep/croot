@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"unsafe"
 
-	"github.com/go-hep/croot/cmem"
+	"go-hep.org/x/cgo/croot/cmem"
 )
 
 // cgoSliceType is a binary compatible memory representation of a Go slice

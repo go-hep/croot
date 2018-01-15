@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/go-hep/croot/cgentype"
+	"go-hep.org/x/cgo/croot/cgentype"
 )
 
 type S1 struct {
