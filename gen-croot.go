@@ -228,5 +228,12 @@ func copyFile(dst, src string) error {
 }
 
 func trim(b []byte) []byte {
-	return bytes.TrimRight(b, "\r\n")
+	o := bytes.TrimRight(b, "\r\n")
+	o = bytes.Replace(o, []byte(" -m64 "), []byte(" "), -1)
+	o = bytes.Replace(o, []byte(" -m64"), []byte(""), -1)
+	o = bytes.Replace(o, []byte("-m64 "), []byte(""), -1)
+	o = bytes.Replace(o, []byte(" -rdynamic "), []byte(" "), -1)
+	o = bytes.Replace(o, []byte(" -rdynamic"), []byte(""), -1)
+	o = bytes.Replace(o, []byte("-rdynamic "), []byte(""), -1)
+	return o
 }
